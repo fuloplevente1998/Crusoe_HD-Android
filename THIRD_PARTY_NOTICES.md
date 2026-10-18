@@ -4,7 +4,7 @@ The locally built test APK is based on J2ME Loader, copyright 2017–2026 Nikita
 
 - Source: https://github.com/nikita36078/J2ME-Loader
 - Pinned source commit: `13e29830632464719a643043e1113310fe6e64cc`
-- License: Apache License 2.0; the complete text is retained in [licenses/J2ME-Loader-Apache-2.0.txt](licenses/J2ME-Loader-Apache-2.0.txt).
+- License: Apache License 2.0; the complete text is retained in [J2ME-Loader-Apache-2.0.txt](J2ME-Loader-Apache-2.0.txt).
 - Modifications: optional Crusoe character replacements, larger internal rendering surfaces, corresponding image-copy and screenshot corrections. The local build changes its package suffix and display name, uses compile SDK 36 and ACRA 5.13.1.
 - Upstream third-party component notices remain in the APK's `assets/licenses.html` and are available through the runtime's license screen. Runtime dependencies retain their respective licenses.
 
