@@ -8,6 +8,7 @@ mkdir -p build/engine-tests
   app/src/main/java/hu/crusoe/standalone/GameData.java \
   app/src/main/java/hu/crusoe/standalone/GameEngine.java \
   app/src/main/java/hu/crusoe/standalone/ResourceRespawn.java \
-  app/src/main/java/hu/crusoe/standalone/HarvestGame.java tests/EngineChecks.java
+  app/src/main/java/hu/crusoe/standalone/HarvestGame.java tests/EngineChecks.java tests/SurvivalChecks.java
 bash scripts/test_respawn.sh
 "$TASK_JAVA" -ea -cp build/engine-tests EngineChecks app/src/main/assets/world.pack
+"$TASK_JAVA" -ea -cp build/engine-tests SurvivalChecks app/src/main/assets/world.pack

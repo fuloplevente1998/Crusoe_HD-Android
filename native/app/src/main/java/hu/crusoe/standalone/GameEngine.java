@@ -18,6 +18,8 @@ public final class GameEngine {
     public HarvestGame harvest;
     public String notice="A hullámok partra sodortak. Keresd meg a roncsból szétszóródott felszerelést.";
     public int noticeRevision;
+    public static final String DEAD_MESSAGE="Ez a kaland véget ért. Töltsd vissza az utolsó mentést, vagy indíts új kalandot.";
+    public boolean isDead(){return health<=0;}
 
     public GameEngine(GameData data){
         this.data=data;objects=data.layers[GameData.OBJECTS].clone();
@@ -78,6 +80,7 @@ public final class GameEngine {
     }
 
     public void update(float delta,float joyX,float joyY){
+        if(isDead()){stop();harvest=null;return;}
         float dt=Math.max(0,Math.min(.1f,delta));walking=false;
         if(dt==0)return; // A fresh display frame must not cancel a pending route.
         float dx=joyX,dy=joyY;
@@ -103,6 +106,7 @@ public final class GameEngine {
         food=Math.max(0,food-dt*.035f);water=Math.max(0,water-dt*.05f);
         energy=Math.max(0,energy-dt*(walking?.025f:.005f));
         if(food<=0||water<=0)health=Math.max(0,health-dt*.05f);
+        if(isDead()){stop();harvest=null;return;}
         visit();
     }
     private void visit(){
@@ -112,6 +116,7 @@ public final class GameEngine {
         }
     }
     public boolean navigate(int tx,int ty){
+        if(isDead()){stop();return false;}
         route.clear();if(tx<0||ty<0||tx>=180||ty>=180)return false;
         boolean[] goals=new boolean[32400];int target=ty*180+tx;
         if(passable(tx,ty))goals[target]=true;
@@ -142,6 +147,7 @@ public final class GameEngine {
         return best;
     }
     public String interact(){
+        if(isDead())return DEAD_MESSAGE;
         int index=selected>=0&&objects[selected]!=0?selected:nearest();
         if(index<0)return "Nincs elérhető tárgy a közelben.";
         if(!near(index,1.8f))return "Menj közelebb: "+data.items[objectAt(index)].name;
@@ -161,6 +167,17 @@ public final class GameEngine {
         advanceTime(8);energy=100;
         food=Math.max(0,food-8);water=Math.max(0,water-12);return "Megpihentél a táborban. Az erőd helyreállt.";
     }
+    public boolean restTarget(){
+        int index=selected>=0&&objects[selected]!=0?selected:nearest();
+        if(index<0||!near(index,1.8f))return false;
+        int id=objectAt(index);return id==17||id==9||id==10;
+    }
+    public String restPreview(){
+        return "8 óra telik el. Élelem: "+Math.round(food)+" → "+Math.round(Math.max(0,food-8))
+                +", víz: "+Math.round(water)+" → "+Math.round(Math.max(0,water-12))
+                +". Erő: 100."
+                +(food<=8||water<=12?" Kevés a készleted: pihenés előtt egyél és igyál!":"");
+    }
     public boolean contextAvailable(int context){
         if(context<0)return true;
         if((context==9||context==10)&&inventory[context]>0)return true;
@@ -178,6 +195,7 @@ public final class GameEngine {
     }
     public int toolAmount(int id){return id>=0&&id<inventory.length?availableTool(id):0;}
     public String missing(GameData.Recipe recipe){
+        if(isDead())return DEAD_MESSAGE;
         ArrayList<String> parts=new ArrayList<>();
         if(!contextAvailable(recipe.context))parts.add("Hely: "+data.items[recipe.context].name);
         // Reserve consumables even when an ingredient also serves as a tool.
@@ -206,12 +224,34 @@ public final class GameEngine {
         return "Elkészült: "+data.items[id].name;
     }
     public String eat(int id){
+        String need=consumptionRequirement(id);if(!need.isEmpty())return need;
+        GameData.Item item=data.items[id];inventory[id]--;
+        // -1 in the original nutrition columns means no effect, not -1 point.
+        food=clamp(food+nutritionEffect(item.attributes[3]));water=clamp(water+nutritionEffect(item.attributes[4]));
+        health=clamp(health+item.attributes[6]);
+        if(isDead()){stop();harvest=null;}
+        return "Elfogyasztottad: "+item.name+(isDead()?". Az életerőd elfogyott.":"");
+    }
+    public String consumptionRequirement(int id){
+        if(isDead())return DEAD_MESSAGE;
         if(id<0||id>=120||inventory[id]<=0)return "Nincs nálad ilyen tárgy.";
+        GameData.Item item=data.items[id];if(item.attributes[1]<0)return "Ez nem fogyasztható.";
+        int tool=item.attributes[1];return tool>0&&availableTool(tool)==0?"Szükséges: "+data.items[tool].name:"";
+    }
+    private static int nutritionEffect(int value){return value==-1?0:value;}
+    private static String signed(int value){return value>0?"+"+value:Integer.toString(value);}
+    public String consumptionEffects(int id){
         GameData.Item item=data.items[id];
-        if(item.attributes[1]<0)return "Ez nem fogyasztható.";
-        int tool=item.attributes[1];if(tool>0&&availableTool(tool)==0)return "Szükséges: "+data.items[tool].name;
-        inventory[id]--;food=clamp(food+Math.max(0,item.attributes[3]));water=clamp(water+Math.max(0,item.attributes[4]));
-        health=clamp(health+item.attributes[6]);return "Elfogyasztottad: "+item.name;
+        return "Élelem "+signed(nutritionEffect(item.attributes[3]))+" · Víz "
+                +signed(nutritionEffect(item.attributes[4]))+" · Élet "+signed(item.attributes[6]);
+    }
+    public String survivalWarning(){
+        if(isDead())return "Az életerőd elfogyott.";
+        if(health<=10)return "Veszélyesen kevés élet! Keress biztonságot és gyógyító élelmet.";
+        if(water<=10)return "Kevés a víz! Egy lédús gyümölcs segíthet.";
+        if(food<=10)return "Kevés az élelem! Egyél a tarisznyádból.";
+        if(energy<=10)return "Kimerültél. Keress tábort a pihenéshez.";
+        return "";
     }
     private static float clamp(float n){return Math.max(0,Math.min(100,n));}
     public boolean nearWater(int terrain){
@@ -231,6 +271,7 @@ public final class GameEngine {
     }
     private int harvestConsumable(int tool){return tool==14?90:tool==83?26:tool==81?45:3;}
     public String harvestRequirement(int tool,int target){
+        if(isDead())return DEAD_MESSAGE;
         if(harvest!=null)return "Már folyamatban van egy művelet.";
         if(tool!=14&&tool!=83&&tool!=81&&tool!=HarvestGame.COCONUT)return "Ez nem használható ebben a minijátékban.";
         if(inventory[tool]<=0)return "Szükséges eszköz: "+data.items[tool].name;
@@ -252,6 +293,7 @@ public final class GameEngine {
         stop();harvest=new HarvestGame(tool,target,item,seed);return "";
     }
     public String finishHarvest(){
+        if(isDead()){harvest=null;stop();return DEAD_MESSAGE;}
         HarvestGame game=harvest;if(game==null||!game.finished)return "A művelet még tart.";
         harvest=null;
         if(game.won){
@@ -298,7 +340,7 @@ public final class GameEngine {
         // Save-v1 compatibility: salvage exhausted worlds without replacing the save,
         // resetting inventory or inventing new stone locations.
         int recovery=-1;
-        if(inventory[ResourceRespawn.STONE_ITEM_ID]==0){
+        if(!isDead()&&inventory[ResourceRespawn.STONE_ITEM_ID]==0){
             recovery=restoreReachableStone(true);
         }
         if(recovery>=0){

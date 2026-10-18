@@ -13,28 +13,64 @@ public final class GameActivity extends Activity {
     public GameEngine engine;
     public GameView gameView;
     public boolean paused;
+    public String versionLabel="alpha";
     private int openDialogs;
     private boolean foreground=true;
     private File saveFile;
+    private File checkpointFile;
+    private final ArrayList<AlertDialog> sheets=new ArrayList<>();
 
     @Override public void onCreate(Bundle state){
         super.onCreate(state);
+        try{versionLabel=getPackageManager().getPackageInfo(getPackageName(),0).versionName;}
+        catch(android.content.pm.PackageManager.NameNotFoundException ignored){}
         try {data=new GameData(getAssets().open("world.pack"));}
         catch(IOException e){throw new IllegalStateException("A játék adatai nem tölthetők be",e);}
         saveFile=new File(getFilesDir(),"island-v1.save");
+        checkpointFile=new File(getFilesDir(),"island-checkpoint-v1.save");
         engine=new GameEngine(data);gameView=new GameView(this);setContentView(gameView);
     }
     public boolean hasSave(){return saveFile.isFile();}
+    public boolean hasCheckpoint(){return checkpointFile.isFile();}
     public void start(boolean resume){
         GameEngine next=new GameEngine(data);
         if(resume)try{next.load(saveFile);}catch(IOException e){message("A mentés sérült vagy nem kompatibilis. Új játékot indíthatsz.");return;}
         engine=next;gameView.screen=GameView.WORLD;gameView.centerCamera();paused=false;
+        gameView.resetInput();
+        if(!checkGameOver())save();
         gameView.invalidate();
     }
     public void save(){
         if(gameView.screen==GameView.TITLE)return;
-        try{engine.save(saveFile);}catch(IOException e){engine.say("A mentés nem sikerült. Ellenőrizd a szabad tárhelyet.");}
+        try{
+            // A lethal action never replaces the last living checkpoint.
+            if(!engine.isDead())engine.save(checkpointFile);
+            engine.save(saveFile);
+        }catch(IOException e){engine.say("A mentés nem sikerült. Ellenőrizd a szabad tárhelyet.");}
     }
+    public boolean checkGameOver(){
+        if(!engine.isDead())return false;
+        if(gameView.screen==GameView.DEAD)return true;
+        engine.stop();engine.harvest=null;gameView.resetInput();
+        for(AlertDialog dialog:new ArrayList<>(sheets))dialog.dismiss();
+        gameView.screen=GameView.DEAD;gameView.lastFrame=0;save();gameView.invalidate();return true;
+    }
+    public void restoreCheckpoint(){
+        GameEngine next=new GameEngine(data);
+        try{
+            next.load(checkpointFile);
+            if(next.isDead())throw new IOException("Checkpoint is not alive");
+            next.save(saveFile);
+        }catch(IOException e){message("Az utolsó élő mentés nem tölthető be. A jelenlegi mentésedet nem módosítottam.");return;}
+        engine=next;engine.say("Az utolsó élő mentést visszatöltöttem.");gameView.screen=GameView.WORLD;
+        gameView.centerCamera();gameView.resetInput();paused=!foreground||openDialogs>0;gameView.invalidate();
+    }
+    public void confirmNewGame(){
+        new AlertDialog.Builder(this).setTitle("Új kaland")
+            .setMessage("Újrakezded? Ez felülírja a mentett kalandot és az utolsó élő mentést is.")
+            .setPositiveButton("Új kaland",(d,w)->start(false)).setNegativeButton("Mégsem",null).show();
+    }
+    public void returnToTitle(){save();gameView.resetInput();gameView.screen=GameView.TITLE;gameView.invalidate();}
     public void message(String text){Toast.makeText(this,text,Toast.LENGTH_LONG).show();}
     private int dp(float v){return (int)(v*getResources().getDisplayMetrics().density+.5f);}
     private LinearLayout list(){LinearLayout list=new LinearLayout(this);list.setOrientation(LinearLayout.VERTICAL);list.setPadding(dp(18),dp(6),dp(18),dp(18));return list;}
@@ -43,7 +79,8 @@ public final class GameActivity extends Activity {
         openDialogs++;paused=true;engine.stop();gameView.resetInput();
         ScrollView scroll=new ScrollView(this);scroll.setBackgroundColor(0xff102e2e);scroll.addView(content);
         AlertDialog dialog=new AlertDialog.Builder(this).setTitle(title).setView(scroll).setNegativeButton("Vissza",null).create();
-        dialog.setOnDismissListener(d->{openDialogs=Math.max(0,openDialogs-1);paused=!foreground||openDialogs>0;gameView.lastFrame=0;gameView.invalidate();});dialog.show();return dialog;
+        sheets.add(dialog);
+        dialog.setOnDismissListener(d->{sheets.remove(dialog);openDialogs=Math.max(0,openDialogs-1);paused=!foreground||openDialogs>0;gameView.lastFrame=0;gameView.invalidate();});dialog.show();return dialog;
     }
     private android.graphics.drawable.GradientDrawable panel(int color){
         android.graphics.drawable.GradientDrawable d=new android.graphics.drawable.GradientDrawable();d.setColor(color);d.setCornerRadius(dp(13));return d;
@@ -85,8 +122,14 @@ public final class GameActivity extends Activity {
         TextView count=label("Nálad: "+engine.inventory[id],19,0xffefcf94);content.addView(count);
         content.addView(label(data.items[id].description,16,Color.LTGRAY));
         if(data.items[id].attributes[1]>=0){
-            Button eat=new Button(this);eat.setText("Fogyasztás");content.addView(eat);
-            eat.setOnClickListener(v->{String result=engine.eat(id);engine.say(result);message(result);save();count.setText("Nálad: "+engine.inventory[id]);eat.setEnabled(engine.inventory[id]>0);((TextView)card.getChildAt(2)).setText("Nálad: "+engine.inventory[id]);if(engine.inventory[id]==0)card.setVisibility(View.GONE);});
+            content.addView(label(engine.consumptionEffects(id),17,data.items[id].attributes[6]<0?0xffe5a18a:0xffb7d2a1));
+            int tool=data.items[id].attributes[1];
+            if(tool>0)content.addView(label("Szükséges: "+data.items[tool].name+" · az eszköz megmarad.",15,Color.LTGRAY));
+            if(data.items[id].attributes[6]<0)content.addView(label("Vigyázat: ez a tárgy életet vesz el!",17,0xffe5a18a));
+            String need=engine.consumptionRequirement(id);
+            if(!need.isEmpty())content.addView(label(need,15,0xffe5a18a));
+            Button eat=new Button(this);eat.setText("Fogyasztás");eat.setEnabled(need.isEmpty());content.addView(eat);
+            eat.setOnClickListener(v->{String result=engine.eat(id);engine.say(result);message(result);save();count.setText("Nálad: "+engine.inventory[id]);eat.setEnabled(engine.consumptionRequirement(id).isEmpty());((TextView)card.getChildAt(2)).setText("Nálad: "+engine.inventory[id]);if(engine.inventory[id]==0)card.setVisibility(View.GONE);checkGameOver();});
         }
         sheet(data.items[id].name,content);
     }
@@ -97,7 +140,13 @@ public final class GameActivity extends Activity {
         final int animal=target;
         content.addView(label("Eszköz használata",20,Color.rgb(239,211,158)));
         AlertDialog dialog=sheet("Művelet",content);
-        collect.setOnClickListener(v->{String result=engine.interact();engine.say(result);message(result);dialog.dismiss();save();});
+        collect.setOnClickListener(v->{
+            if(engine.restTarget()){
+                new AlertDialog.Builder(this).setTitle("Pihenés a táborban").setMessage(engine.restPreview())
+                    .setPositiveButton("Pihenés",(d,w)->{String result=engine.interact();engine.say(result);dialog.dismiss();save();checkGameOver();})
+                    .setNegativeButton("Mégsem",null).show();
+            }else{String result=engine.interact();engine.say(result);message(result);dialog.dismiss();save();checkGameOver();}
+        });
         for(int tool:new int[]{14,83,81,HarvestGame.COCONUT}){
             final int targetTile=tool==HarvestGame.COCONUT?engine.nearestPalm():animal;
             String need=engine.harvestRequirement(tool,targetTile);
@@ -180,7 +229,7 @@ public final class GameActivity extends Activity {
             }).create();
         dialog.setOnDismissListener(d->{openDialogs=Math.max(0,openDialogs-1);paused=!foreground||openDialogs>0;gameView.lastFrame=0;gameView.invalidate();});dialog.show();
     }
-    @Override public void onBackPressed(){if(gameView.screen==GameView.HARVEST){gameView.closeHarvest();}else if(gameView.screen==GameView.MAP){gameView.screen=GameView.WORLD;gameView.invalidate();}else if(gameView.screen==GameView.WORLD)pauseMenu();else super.onBackPressed();}
+    @Override public void onBackPressed(){if(gameView.screen==GameView.DEAD){returnToTitle();}else if(gameView.screen==GameView.HARVEST){gameView.closeHarvest();}else if(gameView.screen==GameView.MAP){gameView.screen=GameView.WORLD;gameView.invalidate();}else if(gameView.screen==GameView.WORLD)pauseMenu();else super.onBackPressed();}
     @Override protected void onPause(){super.onPause();foreground=false;paused=true;gameView.resetInput();
         if(engine.harvest!=null&&engine.harvest.finished){engine.say(engine.finishHarvest());gameView.screen=GameView.WORLD;}
         save();}

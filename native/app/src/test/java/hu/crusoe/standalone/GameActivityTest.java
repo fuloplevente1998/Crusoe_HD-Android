@@ -231,4 +231,87 @@ public class GameActivityTest {
         tap(a,500,1110);assertTrue(a.engine.harvest.flying);assertEquals(1,a.engine.harvest.attempts);
         a.onBackPressed();assertNull(a.engine.harvest);assertEquals(4,a.engine.objectAt(target));
     }
+    private boolean containsText(View view,String text){
+        if(view instanceof android.widget.TextView t&&t.getText().toString().contains(text))return true;
+        if(view instanceof android.view.ViewGroup group)for(int i=0;i<group.getChildCount();i++)if(containsText(group.getChildAt(i),text))return true;
+        return false;
+    }
+    @Test public void lethalFoodClosesSheetsPersistsDeathAndRestoresLastLivingCheckpoint()throws Exception {
+        GameActivity a=create();a.start(false);GameEngine e=a.engine;
+        e.health=40;e.food=52;e.water=61;e.inventory[31]=1;e.inventory[16]=1;e.inventory[76]=1;a.save();
+        File checkpoint=new File(a.getFilesDir(),"island-checkpoint-v1.save");byte[] before=Files.readAllBytes(checkpoint.toPath());
+        a.inventory();android.app.AlertDialog bag=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        bag.getWindow().getDecorView().findViewWithTag("inventory:31").performClick();
+        android.app.AlertDialog detail=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();View content=detail.getWindow().getDecorView();
+        assertTrue(containsText(content,"Élet -50"));assertTrue(containsText(content,"életet vesz el"));
+        screenshot("native-food-warning",dialogImage(detail));
+        button(content,"Fogyasztás").performClick();Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(GameView.DEAD,a.gameView.screen);assertFalse(bag.isShowing());assertFalse(detail.isShowing());
+        assertTrue(e.isDead());assertEquals(0,e.inventory[31]);assertArrayEquals(before,Files.readAllBytes(checkpoint.toPath()));
+        screenshot("native-death",render(a,720,1280));screenshot("native-death-1080x2400",render(a,1080,2400));
+        a.onPause();assertArrayEquals(before,Files.readAllBytes(checkpoint.toPath()));
+        GameActivity resumed=create();resumed.start(true);assertEquals(GameView.DEAD,resumed.gameView.screen);
+        assertEquals(0,resumed.engine.inventory[31]);render(resumed,720,1280);
+        tap(resumed,360,780);assertEquals(GameView.WORLD,resumed.gameView.screen);
+        assertEquals(40,resumed.engine.health,0);assertEquals(1,resumed.engine.inventory[31]);assertEquals(1,resumed.engine.inventory[76]);
+        resumed.start(true);assertEquals(40,resumed.engine.health,0);assertFalse(resumed.engine.isDead());
+    }
+    @Test public void foodPreviewShowsOriginalValuesAndDisablesMissingTool()throws Exception {
+        GameActivity a=create();a.start(false);Arrays.fill(a.engine.objects,(byte)0);
+        a.engine.inventory[1]=1;a.engine.food=40;a.engine.water=50;a.engine.health=70;
+        a.inventory();android.app.AlertDialog bag=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        bag.getWindow().getDecorView().findViewWithTag("inventory:1").performClick();
+        android.app.AlertDialog detail=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();View content=detail.getWindow().getDecorView();
+        assertTrue(containsText(content,"Víz +25"));assertFalse(button(content,"Fogyasztás").isEnabled());
+        detail.dismiss();bag.dismiss();a.engine.inventory[3]=1;
+        a.inventory();bag=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        bag.getWindow().getDecorView().findViewWithTag("inventory:1").performClick();
+        detail=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();content=detail.getWindow().getDecorView();
+        assertTrue(button(content,"Fogyasztás").isEnabled());button(content,"Fogyasztás").performClick();
+        assertEquals(43,a.engine.food,0);assertEquals(75,a.engine.water,0);assertEquals(78,a.engine.health,0);
+        assertEquals(1,a.engine.inventory[3]);assertEquals(0,a.engine.inventory[1]);assertFalse(button(content,"Fogyasztás").isEnabled());
+    }
+    @Test public void restRequiresConfirmationAndWarnsBeforeSuppliesRunOut()throws Exception {
+        GameActivity a=create();a.start(false);GameEngine e=a.engine;
+        int camp=(int)e.y*180+(int)e.x+1;e.objects[camp]=18;e.selected=camp;
+        e.food=7;e.water=11;e.energy=23;e.hour=23;e.day=2;
+        a.actions();android.app.AlertDialog action=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        android.widget.Button collect=button(action.getWindow().getDecorView(),"Közeli tárgy használata / felvétele");collect.performClick();
+        android.app.AlertDialog confirm=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        assertTrue(containsText(confirm.getWindow().getDecorView(),"egyél és igyál"));screenshot("native-rest-preview",dialogImage(confirm));
+        confirm.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).performClick();Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(23,e.hour,0);assertEquals(7,e.food,0);assertEquals(11,e.water,0);assertEquals(23,e.energy,0);
+        collect.performClick();confirm=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        confirm.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(7,e.hour,0);assertEquals(3,e.day);assertEquals(100,e.energy,0);assertEquals(0,e.food,0);assertEquals(0,e.water,0);
+    }
+    @Test public void corruptCheckpointAndCancelledRestartPreserveCurrentSave()throws Exception {
+        GameActivity a=create();a.start(false);a.engine.inventory[76]=1;a.engine.health=0;a.checkGameOver();
+        File current=new File(a.getFilesDir(),"island-v1.save"),checkpoint=new File(a.getFilesDir(),"island-checkpoint-v1.save");
+        byte[] before=Files.readAllBytes(current.toPath());Files.write(checkpoint.toPath(),new byte[]{1,2,3});
+        a.restoreCheckpoint();assertTrue(a.engine.isDead());assertEquals(GameView.DEAD,a.gameView.screen);
+        assertArrayEquals(before,Files.readAllBytes(current.toPath()));
+        render(a,720,1280);tap(a,360,880);
+        android.app.AlertDialog confirm=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        confirm.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).performClick();Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(a.engine.isDead());assertEquals(1,a.engine.inventory[76]);assertArrayEquals(before,Files.readAllBytes(current.toPath()));
+        a.confirmNewGame();confirm=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        confirm.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(a.engine.isDead());assertEquals(0,a.engine.inventory[76]);
+        a.engine.health=0;a.checkGameOver();a.restoreCheckpoint();
+        assertFalse(a.engine.isDead());assertEquals(0,a.engine.inventory[76]);
+    }
+
+    @Test public void lethalHuntingFailureShowsDeathWithoutDuplicatingAnimalOrAmmunition()throws Exception {
+        GameActivity a=create();a.start(false);GameEngine e=a.engine;
+        int target=e.findObject(42);assertTrue(target>=0);e.x=target%180+.5f;e.y=target/180+1.5f;
+        e.health=40;e.inventory[81]=1;e.inventory[45]=1;
+        assertEquals("",e.startHarvest(81,target,29));a.gameView.screen=GameView.HARVEST;a.save();
+        e.harvest.finished=true;e.harvest.won=false;render(a,720,1280);
+        assertEquals(GameView.DEAD,a.gameView.screen);assertTrue(e.isDead());assertNull(e.harvest);
+        assertEquals(42,e.objectAt(target));assertEquals(0,e.inventory[45]);assertEquals(0,e.inventory[42]);
+        a.restoreCheckpoint();assertFalse(a.engine.isDead());assertEquals(40,a.engine.health,0);
+        assertEquals(0,a.engine.inventory[45]);assertEquals(42,a.engine.objectAt(target));
+    }
+
 }

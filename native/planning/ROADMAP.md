@@ -20,6 +20,8 @@ Helyi ellenőrzési alap: **13 Android/Skia felületi teszt és 307 motorfeltét
 
 **P0:** az előrehaladást vagy adatbiztonságot megalapozó/blokkoló munka. **P1:** az eredeti részletes viselkedéséhez és a kész kiadáshoz szükséges további fejlesztés. A prioritás nem határidő és nem becsült elkészültségi százalék.
 
+**0.7.0 fejlesztés:** N04 halál/fogyasztás/pihenési előnézet és N10 élő mentési másolat részben elkészült; [túlélési állapot](SURVIVAL.md). Az N04 teljes eredeti időzítése, betegségei, morálja és alvásképlete még nyitott.
+
 | Azonosító | Prioritás | Feladat | Kiinduló állapot | Előfeltételek |
 | --- | --- | --- | --- | --- |
 | [N01](#n01) | P0 | [#5 Eredeti előrehaladás feltárása és történeti/naplóállapotok](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/5) | hiányos / részben feltárandó | — |
@@ -129,7 +131,7 @@ Előfeltételek: [N01](https://github.com/fuloplevente1998/Crusoe_HD-Android/iss
 
 **P0 · [#8](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/8) · Kiinduló állapot: egyszerűsített; halálállapot hiányzik.**
 
-Négy közelítő érték (élet/élelem/víz/erő) és fix nyolcórás pihenés működik. A tárgyoszlopok teljes jelentése és az eredeti túlélési viselkedés nincs igazolva. A nulla élet jelenleg nem indít teljes game-over folyamatot.
+Négy közelítő érték (élet/élelem/víz/erő) és fix nyolcórás pihenés működik. A tárgyoszlopok teljes jelentése és az eredeti túlélési viselkedés nincs igazolva. A 0.7.0-ban már működik a nulla élethez tartozó halálképernyő, az aktív műveletek tiltása és az utolsó élő mentés visszatöltése. Fogyasztási előnézet, eszköz-/méregjelzés és pihenési megerősítés is készült. 18 Android/Skia teszt és 22 új túlélési feltétel igazolja az első bővítést. [Részletek és fennmaradó eredeti eltérések](SURVIVAL.md).
 
 Hátralévő munka:
 
@@ -140,8 +142,8 @@ Hátralévő munka:
 Akkor kész, ha:
 
 - [ ] Konkrét eredeti étel-, mérgezési-, pihenési- és kimerülési esetek összehasonlítható eredményt adnak.
-- [ ] Az élet elfogyása után nem folytatható korlátlanul az aktív játék.
-- [ ] Sikertelen fogyasztás nem veszít tárgyat; a játék vége és mentés együtt is ellenőrzött.
+- [x] Az élet elfogyása után nem folytatható korlátlanul az aktív játék (0.7.0 natív halálállapot).
+- [x] Sikertelen fogyasztás nem veszít tárgyat; halál, fő mentés és élő másolat együtt helyi motor-/Android-teszttel ellenőrzött. Fizikai telefonos próba még hátra van.
 
 Előfeltételek: [N01](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/5), [N10](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/6)
 
