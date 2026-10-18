@@ -64,7 +64,12 @@ public final class GameEngine {
             if(Math.abs(dx)>Math.abs(dy))direction=dx<0?1:2;else direction=dy<0?3:0;
         }
         if(walking)animation+=dt*9;
-        hour+=dt/18f;if(hour>=24){hour-=24;day++;}
+        hour+=dt/18f;
+        if(hour>=24){
+            hour-=24;day++;
+            // Provisional daily stone regrowth. Original cadence still under investigation.
+            ResourceRespawn.restoreNearestStone(data.layers[GameData.OBJECTS],objects,x,y);
+        }
         food=Math.max(0,food-dt*.035f);water=Math.max(0,water-dt*.05f);
         energy=Math.max(0,energy-dt*(walking?.025f:.005f));
         if(food<=0||water<=0)health=Math.max(0,health-dt*.05f);
@@ -259,6 +264,16 @@ public final class GameEngine {
         // Apply only after the complete save passed validation.
         x=nx;y=ny;hour=nh;day=nd;health=stats[0];food=stats[1];water=stats[2];energy=stats[3];
         System.arraycopy(inv,0,inventory,0,120);System.arraycopy(world,0,objects,0,32400);
-        seen.clear();seen.or(BitSet.valueOf(new long[]{flags}));selected=-1;harvest=null;stop();say("A mentést betöltöttem.");
+        seen.clear();seen.or(BitSet.valueOf(new long[]{flags}));selected=-1;harvest=null;stop();
+        // Save-v1 compatibility: salvage exhausted worlds without replacing the save,
+        // resetting inventory or inventing new stone locations.
+        int recovery=-1;
+        if(inventory[ResourceRespawn.STONE_ITEM_ID]==0&&!ResourceRespawn.containsStone(objects)){
+            recovery=ResourceRespawn.restoreNearestStone(data.layers[GameData.OBJECTS],objects,x,y);
+        }
+        if(recovery>=0){
+            say("A mentést betöltöttem. A kimerült kőlelőhelyek egyikén új kő jelent meg: "
+                    +(recovery%180+1)+", "+(recovery/180+1)+".");
+        }else say("A mentést betöltöttem.");
     }
 }
