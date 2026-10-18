@@ -32,7 +32,7 @@ Helyi ellenőrzési alap: **13 Android/Skia felületi teszt és 307 motorfeltét
 | [N08](#n08) | P1 | [#13 Grafikai hozzárendelések, méretek és animációk véglegesítése](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/13) | részben kész | N03, N05, N06, N07 |
 | [N09](#n09) | P1 | [#14 Teljes magyarítás, napló és helyzetfüggő játékosi visszajelzés](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/14) | részben kész | N01, N02, N03, N04, N05, N06, N07 |
 | [N10](#n10) | P0 | [#6 Mentések bővítése és migráció az új világállapotokhoz](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/6) | alap kész; az új rendszerekhez bővítendő | — |
-| [N12](#n12) | **P0** | [#16 Gyűjthető erőforrások újratermelődése – kőhiány miatti softlock](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) | **hiányzik; játékosnál a kövek elfogytak, a haladás blokkolva** | N10 (mentés), N02 (eredeti időszabály feltárása) |
+| [N12](#n12) | **P0** | [#16 Gyűjthető erőforrások újratermelődése – kőhiány miatti softlock](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) | **P0 javítás PR #17 alatt; tesztelés és eredeti időzítés még hátra** | N10 (mentés), N02 (eredeti időszabály feltárása) |
 | [N11](#n11) | P1 | [#15 Telefonos végigjátszás, teljesítménymérés és kiadási ellenőrzés](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/15) | hiányzik; helyi motor/UI tesztek vannak | N01, N02, N03, N04, N05, N06, N07, N08, N09, N10 |
 
 ## Javasolt haladási sorrend
@@ -283,6 +283,8 @@ Előfeltételek: nincs másik részfeladat előfeltételként rögzítve.
 ### N12 · A gyűjthető tárgyak eredeti újratermelődése; kőhiány miatti softlock
 
 **P0 · [#16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) · Kiinduló állapot: hiányzik, a felhasználó jelenlegi mentésében már elfogyott az összes kő.**
+
+**Aktuális fejlesztés:** [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17): eredeti lelőhelyekből és bejárhatósági BFS alapján egy kő visszaállítása, kimerült mentés mentése és ideiglenes napváltásos pótlás. A módosítás nincs Androidon fordítva/tesztelve, nem az igazolt eredeti respawn ütemezés. [Részletes terv és tesztek](RESPAWN_N12.md).
 
 **Felhasználói megfigyelés:** az eredeti Java ME-játékban a pályán lévő erőforrások idővel újra megjelentek. A 0.6.0 natív motorban az `interact()` egyszerűen `objects[index]=0` állapotra állítja a felszedett tárgyat, az `update()` csak a napot/órát lépteti, nem regenerál, a mentés pedig a kimerített `objects[]` tömböt tartósítja. A kő (ID **3**) fogyóeszköz a kókuszminijátékhoz is, ezért az elfogyása blokkolhatja a játékmenetet.
 
