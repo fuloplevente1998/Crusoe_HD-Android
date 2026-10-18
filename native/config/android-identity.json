@@ -1,0 +1,8 @@
+{
+  "application_id": "hu.crusoe.standalone",
+  "certificate_sha256": "ce51e3426040b1497c65fd230f875e602d4766143ba3f505475e0996599b40c1",
+  "minimum_version_code": 8,
+  "version_epoch_utc": "2020-01-01T00:00:00Z",
+  "minimum_sdk": 26,
+  "world_sha256": "324279ccfdb618d769572f1233d64c99a71725f5cf138acc84a7e1c0231bc6ce"
+}

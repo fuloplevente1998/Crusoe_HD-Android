@@ -1,0 +1,71 @@
+name: Native Android update (shared)
+
+on:
+  workflow_call:
+    secrets:
+      CRUSOE_SIGNING_KEYSTORE_B64:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  native-update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install Android build dependencies
+        run: sdkmanager --install 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Restore verified world data
+        working-directory: native
+        run: python3 scripts/restore_world.py
+      - name: Run resource, engine and Android UI tests
+        working-directory: native
+        run: |
+          chmod +x gradlew
+          bash scripts/test_engine.sh
+          ./gradlew --no-daemon --console=plain testDebugUnitTest
+      - name: Restore existing native signing key
+        env:
+          CRUSOE_SIGNING_KEYSTORE_B64: ${{ secrets.CRUSOE_SIGNING_KEYSTORE_B64 }}
+        shell: bash
+        run: |
+          if [[ -z "$CRUSOE_SIGNING_KEYSTORE_B64" ]]; then
+            echo '::error::Set repository Actions secret CRUSOE_SIGNING_KEYSTORE_B64 with the existing native key. See native/docs/ANDROID_UPDATES.md. No replacement key or separate test app will be produced.'
+            exit 1
+          fi
+          umask 077
+          mkdir -p native/private/signing
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          encoded = ''.join(os.environ['CRUSOE_SIGNING_KEYSTORE_B64'].split())
+          Path('native/private/signing/native-debug.keystore').write_bytes(base64.b64decode(encoded, validate=True))
+          PY
+      - name: Build and verify same-package same-signer APK
+        working-directory: native
+        run: |
+          ./gradlew --no-daemon --console=plain verifyUpdateSigningIdentity assembleDebug
+          mkdir -p artifacts/update
+          python3 scripts/verify_update_apk.py app/build/outputs/apk/debug/app-debug.apk --output artifacts/update/verification.json
+          cp app/build/outputs/apk/debug/app-debug.apk artifacts/update/Crusoe-Native-Update.apk
+          cd artifacts/update
+          sha256sum Crusoe-Native-Update.apk > SHA256SUMS
+      - name: Upload verified update only
+        uses: actions/upload-artifact@v4
+        with:
+          name: crusoe-native-update-${{ github.run_id }}-${{ github.run_attempt }}
+          path: native/artifacts/update/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove runner copy of signing key
+        if: always()
+        run: rm -f native/private/signing/native-debug.keystore

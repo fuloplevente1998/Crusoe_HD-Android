@@ -1,87 +1,21 @@
-name: Android debug baseline
+name: Native Android update APK
 
 on:
-  push:
-    branches: [develop]
-    paths:
-      - ".github/workflows/android-debug.yml"
-      - "docs/**"
   workflow_dispatch:
+  push:
+    branches:
+      - feat/native-engine-v01
+      - fix/native-update-signing
+      - develop
+    paths:
+      - native/**
+      - .github/workflows/android-debug.yml
+      - .github/workflows/native-update.yml
 
 permissions:
   contents: read
 
-concurrency:
-  group: crusoe-android-debug-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  build:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 75
-    steps:
-      - name: Checkout project configuration
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
-
-      - name: Install exact upstream Android SDK / NDK
-        run: |
-          sdkmanager --install "platforms;android-36" "ndk;29.0.14206865"
-          yes | sdkmanager --licenses >/dev/null || true
-
-      - name: Checkout pinned open-source J2ME Loader
-        env:
-          UPSTREAM_COMMIT: 13e29830632464719a643043e1113310fe6e64cc
-        run: |
-          git clone --filter=blob:none https://github.com/nikita36078/J2ME-Loader.git loader
-          git -C loader checkout "$UPSTREAM_COMMIT"
-          git -C loader submodule update --init --recursive
-          # Upstream currently requests API 37; public SDK repository only exposes stable 36.
-          sed -i "s/COMPILE_SDK = 37/COMPILE_SDK = 36/" loader/build.gradle
-          grep -F "COMPILE_SDK = 36" loader/build.gradle
-          # ACRA 5.14.2 requires API 37; 5.13.1 targets Android API 36.
-          sed -i "s/ch.acra:acra-dialog:5.14.2/ch.acra:acra-dialog:5.13.1/" loader/app/build.gradle
-          grep -F "ch.acra:acra-dialog:5.13.1" loader/app/build.gradle
-          echo "J2ME Loader commit: $(git -C loader rev-parse HEAD)"
-
-      - name: Configure temporary CI signing credentials
-        run: |
-          keytool -genkeypair -noprompt -keystore loader/app/debug-ci.jks \
-            -alias androiddebugkey -storepass android -keypass android \
-            -keyalg RSA -keysize 2048 -validity 365 \
-            -dname "CN=Crusoe CI,O=Test Build,C=HU"
-          cat > loader/keystore.properties <<'PROPS'
-          storeFile=debug-ci.jks
-          storePassword=android
-          keyAlias=androiddebugkey
-          keyPassword=android
-          PROPS
-
-      - name: Build clean J2ME Loader openDebug APK
-        working-directory: loader
-        run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon --stacktrace assembleOpenDebug
-
-      - name: Show generated APK
-        run: |
-          find loader/app/build/outputs/apk/open/debug -maxdepth 1 -name '*.apk' -ls
-          test -n "$(find loader/app/build/outputs/apk/open/debug -maxdepth 1 -name '*.apk' -print -quit)"
-
-      - name: Upload unsigned-for-release debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: crusoe-j2me-loader-debug-apk
-          path: loader/app/build/outputs/apk/open/debug/*.apk
-          if-no-files-found: error
-          retention-days: 7
+  update:
+    uses: ./.github/workflows/native-update.yml
+    secrets: inherit

@@ -284,7 +284,7 @@ Előfeltételek: nincs másik részfeladat előfeltételként rögzítve.
 
 **P0 · [#16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) · Kiinduló állapot: hiányzik, a felhasználó jelenlegi mentésében már elfogyott az összes kő.**
 
-**Aktuális fejlesztés:** [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17): eredeti JAR alapján igazolt **04:00-s** objektumtérkép-frissítés **36 rendszeresen gyűjthető erőforráskódra és 1 024 lelőhelyre**. A korábbi csak kőre vonatkozó megoldást minden természetes anyagra kiterjesztettük; az állatokat/egyszeri felszerelést/építményeket védjük. A kifogyott köves mentés mentése megmarad. **22/22 erőforrás-teszt**, **321 motorfeltétel**, Android CI sikeres. A felhasználó által kért **azonos aláírású, telefonra rátelepíthető** 0.6.1 buildet Codexben kell kiadni a már meglévő keystore-ral. [Forrás és tesztek](RESPAWN_N12.md) · [Codex átadás](CODEX_UPDATE_HANDOFF.md).
+**Aktuális fejlesztés:** [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17): eredeti JAR alapján igazolt **04:00-s** objektumtérkép-frissítés **36 rendszeresen gyűjthető erőforráskódra és 1 024 lelőhelyre**. A korábbi csak kőre vonatkozó megoldást minden természetes anyagra kiterjesztettük; az állatokat/egyszeri felszerelést/építményeket védjük. A kifogyott köves mentés mentése megmarad. **61/61 erőforrás-feltétel**, **321 motorfeltétel**, Android CI sikeres. A **0.6.2 frissítő alpha** helyben a megőrzött aláírókulccsal elkészült; a két régi helyi mentéssel 323 motorfeltétel és 13 Android/Skia teszt sikeres. A GitHubon is frissíthető APK-hoz közös build és automatikus UTC-verziókód készült. A meglévő kulcs egyszeri Actions-titokként beállítása 403 integrációs jogosultsághiba miatt a tulajdonosra vár. [GitHub-build](../docs/ANDROID_UPDATES.md). [Forrás és tesztek](RESPAWN_N12.md) · [Codex átadás](CODEX_UPDATE_HANDOFF.md).
 
 **Felhasználói megfigyelés:** az eredeti Java ME-játékban a pályán lévő erőforrások idővel újra megjelentek. A 0.6.0 natív motorban az `interact()` egyszerűen `objects[index]=0` állapotra állítja a felszedett tárgyat, az `update()` csak a napot/órát lépteti, nem regenerál, a mentés pedig a kimerített `objects[]` tömböt tartósítja. A kő (ID **3**) fogyóeszköz a kókuszminijátékhoz is, ezért az elfogyása blokkolhatja a játékmenetet.
 
@@ -299,7 +299,7 @@ Hátralévő munka:
 Akkor kész, ha:
 
 - [ ] A respawn feltételei eredeti forrás alapján dokumentáltak; a meg nem erősített részletek külön szerepelnek.
-- [x] A 36 visszatérő tárgykód (1 024 eredeti hely) 04:00-s utánpótlása forrásban megvalósítva, 22/22+321 teszttel igazolva; fizikai telefonos próba még hátra.
+- [x] A 36 visszatérő tárgykód (1 024 eredeti hely) 04:00-s utánpótlása forrásban megvalósítva, 61/61+321 teszttel igazolva; fizikai telefonos próba még hátra.
 - [ ] A jelenlegi kőhiányos 0.6.0 mentés új játék indítása nélkül, adatvesztésmentesen folytatható.
 - [ ] Nincs történeti tárgy-/építmény-duplázás, végtelen erőforrás és save/load után duplán alkalmazott utánpótlás.
 - [ ] Automatizált motorteszt és valódi telefonos regressziós próba zöld.

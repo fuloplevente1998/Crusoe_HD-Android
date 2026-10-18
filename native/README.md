@@ -1,6 +1,6 @@
 # Crusoe – saját motoros Android-játék
 
-**0.6.0-native-alpha:** önálló Android-alkalmazás saját játéklogikával és Canvas-alapú rajzolással. Közvetlenül a játék főmenüje indul, nincs Java ME-kompatibilitás, emulátor, JAR-import, WebView vagy távoli tartalom. Android 8.0+ szükséges.
+**0.6.2-native-alpha:** önálló Android-alkalmazás saját játéklogikával és Canvas-alapú rajzolással. Közvetlenül a játék főmenüje indul, nincs Java ME-kompatibilitás, emulátor, JAR-import, WebView vagy távoli tartalom. Android 8.0+ szükséges.
 
 Ez egy bővülő játszható alap, **nem a teljes eredeti játék elkészült portja**. A korábbi emulátoros APK külön fejlesztési kísérlet volt.
 
@@ -44,7 +44,9 @@ A [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17) 
 
 A régi, **kő nélküli mentések megmentése** is része a PR-nek; a mentési formátum változatlan. A [P0 N12 / #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) feladat addig nyitva marad, amíg a meglévő telefonos mentés folytatását nem igazoltuk.
 
-**Ellenőrzés:** 61/61 erőforrás-egységteszt, **321 teljes natív motorfeltétel**, sikeres Android CI fordítás a [#39147036018 futásban](https://github.com/fuloplevente1998/Crusoe_HD-Android/actions/runs/39147036018). A 36 természetes térképkód explicit listája kizárja azt is, hogy egy több példányban szereplő egyedi felszerelés tévesen újratermelődjön. A felhasználó saját alkalmazására **Codexben, a korábbi privát keystore-ral** fordítjuk a valódi frissítő APK-t, nem külön települő tesztappként. [Codex átadás](planning/CODEX_UPDATE_HANDOFF.md) · [Részletes forrásvizsgálat](planning/RESPAWN_N12.md).
+**Ellenőrzés:** 61/61 erőforrás-egységteszt, **321 teljes natív motorfeltétel**, sikeres Android CI fordítás a [#39147036018 futásban](https://github.com/fuloplevente1998/Crusoe_HD-Android/actions/runs/39147036018). A 36 természetes térképkód explicit listája kizárja azt is, hogy egy több példányban szereplő egyedi felszerelés tévesen újratermelődjön. A 0.6.2-ben a korábbi privát keystore-ral készült frissítő APK aláírása és csomagneve ellenőrzött. A helyi és GitHub build közös aláírás-/verziószabályt használ; a GitHubon a meglévő kulcsot egyszer Actions-titokként kell beállítani. [Frissítő APK és GitHub-beállítás](docs/ANDROID_UPDATES.md). [Codex átadás](planning/CODEX_UPDATE_HANDOFF.md) · [Részletes forrásvizsgálat](planning/RESPAWN_N12.md).
+
+A 0.6.2 helyi ellenőrzése: **61 erőforrás-feltétel, 323 motorfeltétel és 13/13 Android/Skia teszt** sikeres. A 323 a két régi helyi mentésfájllal együtt értendő; ezek nélkül 321. Az új APK csomagneve és tanúsítványa megegyezik a 0.6.0-val, a verziókód nagyobb. Hiányzó és más tanúsítványú keystore, valamint túl alacsony verziókód esetén a build megtagadása is ellenőrzött. Telefonos rátelepítés és az eredeti kőhiányos mentés próbája még hátra van.
 
 ## Még hiányzik
 
@@ -64,7 +66,9 @@ Fizikai telefonos teszt még nincs. A Skia-tesztek nem bizonyítanak telefonon m
 
 ## Helyi fordítás
 
-A generált grafikák a repóban, az `app/src/main/assets/art/` mappában találhatók. Az előnézeti képek a [docs/previews](docs/previews) mappában érhetők el. Az APK a [0.6.0-s tesztkiadásból](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.6.0-alpha) tölthető le. A forráság továbbra sem tartalmazza az eredeti JAR/JAD-ot, a közvetlenül kinyert nyers adatokat vagy a helyi világcsomagot. Az eredeti JAR-ból csak adatokat olvasunk ki; a játék eredeti végrehajtható osztályai nem kerülnek a natív programba.
+A generált grafikák a repóban, az `app/src/main/assets/art/` mappában találhatók. Az előnézeti képek a [docs/previews](docs/previews) mappában érhetők el. Az APK a [0.6.2-es tesztkiadásból](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.6.2-alpha) tölthető le. A forráság továbbra sem tartalmazza az eredeti JAR/JAD-ot, a közvetlenül kinyert nyers adatokat vagy a helyi világcsomagot. Az eredeti JAR-ból csak adatokat olvasunk ki; a játék eredeti végrehajtható osztályai nem kerülnek a natív programba.
+
+A rátelepíthető APK-hoz a **korábbi privát aláírókulcs** is szükséges; nélküle a build szándékosan leáll. A részletes [helyi/GitHub frissítési útmutató](docs/ANDROID_UPDATES.md) az ellenőrzött régi APK-ból való adat-visszatöltést is leírja, így az eredeti JAR újbóli feldolgozása nem szükséges.
 
 ```sh
 python3 scripts/extract_original.py /private/original.jar --out private/extracted
