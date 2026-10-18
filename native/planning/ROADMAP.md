@@ -32,11 +32,13 @@ Helyi ellenőrzési alap: **13 Android/Skia felületi teszt és 307 motorfeltét
 | [N08](#n08) | P1 | [#13 Grafikai hozzárendelések, méretek és animációk véglegesítése](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/13) | részben kész | N03, N05, N06, N07 |
 | [N09](#n09) | P1 | [#14 Teljes magyarítás, napló és helyzetfüggő játékosi visszajelzés](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/14) | részben kész | N01, N02, N03, N04, N05, N06, N07 |
 | [N10](#n10) | P0 | [#6 Mentések bővítése és migráció az új világállapotokhoz](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/6) | alap kész; az új rendszerekhez bővítendő | — |
+| [N12](#n12) | **P0** | [#16 Gyűjthető erőforrások újratermelődése – kőhiány miatti softlock](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) | **hiányzik; játékosnál a kövek elfogytak, a haladás blokkolva** | N10 (mentés), N02 (eredeti időszabály feltárása) |
 | [N11](#n11) | P1 | [#15 Telefonos végigjátszás, teljesítménymérés és kiadási ellenőrzés](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/15) | hiányzik; helyi motor/UI tesztek vannak | N01, N02, N03, N04, N05, N06, N07, N08, N09, N10 |
 
 ## Javasolt haladási sorrend
 
-1. **N01 és N10:** az eredeti kötelező útvonal feltárása, mentésbővítési/migrációs terv.
+1. **N12 (P0, softlock):** a természetes gyűjthető tárgyak eredeti újratermelődési feltételeinek feltárása, különösen a kő (ID 3) pótlása és az elfogyott köveket tartalmazó régi mentések megmentése; az N10 mentési tervével egyeztetve.
+6. **N01 és N10:** az eredeti kötelező útvonal feltárása, mentésbővítési/migrációs terv.
 2. **N02 és N04:** árapály/területnyitás, pontos túlélés és vesztési állapotok.
 3. **N05, N03, N07, N06:** tábor/felszerelés, speciális tárgyhasználat/hajózás/befejezés, minijátékok és állatok összekapcsolása.
 4. **N08 és N09:** véglegesebb grafika/animáció, teljes magyarítás és visszajelzés, folyamatos telefonos próbákkal.
@@ -47,6 +49,7 @@ A sorrend a feltárás eredménye alapján módosítható; a részletes függős
 ## Mikor tekinthető teljesnek?
 
 - A kötelező eredeti útvonal a kezdőparttól az igazolt befejezésig telepített APK-ban, csalás vagy előre feltöltött készlet nélkül végigjátszható.
+- A természetes gyűjthető erőforrások (elsőként a kövek) az eredetinek megfelelő feltételekkel újratermelődnek; a korábban minden követ felhasználó játékos mentése újrakezdés nélkül folytatható.
 - Az eredetihez kötött kötelező átmenetek, túlélési/vesztési állapotok, felszerelés és táborhasználat működnek; a tudatos eltérések tételesen dokumentáltak.
 - A mentés/frissítés és az alapvető kezelhetőség ellenőrzött. A fizikai telefonos mérés nem helyettesíthető a helyi renderpróbákkal.
 
@@ -275,6 +278,32 @@ Akkor kész, ha:
 
 Előfeltételek: nincs másik részfeladat előfeltételként rögzítve.
 
+<a id="n12"></a>
+
+### N12 · A gyűjthető tárgyak eredeti újratermelődése; kőhiány miatti softlock
+
+**P0 · [#16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) · Kiinduló állapot: hiányzik, a felhasználó jelenlegi mentésében már elfogyott az összes kő.**
+
+**Felhasználói megfigyelés:** az eredeti Java ME-játékban a pályán lévő erőforrások idővel újra megjelentek. A 0.6.0 natív motorban az `interact()` egyszerűen `objects[index]=0` állapotra állítja a felszedett tárgyat, az `update()` csak a napot/órát lépteti, nem regenerál, a mentés pedig a kimerített `objects[]` tömböt tartósítja. A kő (ID **3**) fogyóeszköz a kókuszminijátékhoz is, ezért az elfogyása blokkolhatja a játékmenetet.
+
+Hátralévő munka:
+
+- Visszafejteni vagy eredeti játéktesztben megfigyelni a **valós respawn-szabályokat**: mely tárgyak, milyen időközzel, mely eredeti pozíciókon és milyen feltételekkel kerülnek vissza. A pontos időzítés **egyelőre nem ismert**; tilos kitalált fix „naponta visszanő minden” szabályt eredetinek nevezni.
+- A természetes gyűjthető objektumokat és a történeti/egyedi/épített tárgyakat külön kezelni. Utóbbiak ne duplikálódjanak; az eredeti kőlelőhelyek pótlása legyen elsődleges.
+- **Már beragadt 0 köves mentésnél** biztosítani, hogy a játék folytatható legyen a meglévő készlet, pozíció és előrehaladás elvesztése nélkül. A mentési séma és az esetleges migráció az [N10](#n10) feladattal közösen készül.
+- Az események időzítését és szükséges számlálóit menteni, visszatöltéskor idempotensen alkalmazni; ne legyen dupla spawn és mentés–visszatöltés alapú farmolás.
+- Motor- és telefonos regressziós tesztek: minden kő elfogyasztása → eredeti feltétel kivárása → újabb kő felszedhető; mentés–visszatöltés, régi mentés, épített/történeti objektumok sértetlensége, crafting/minijátékok.
+
+Akkor kész, ha:
+
+- [ ] A respawn feltételei eredeti forrás alapján dokumentáltak; a meg nem erősített részletek külön szerepelnek.
+- [ ] A gyűjthető kő (ID 3) elfogyása után a világ eredeti szabály szerint pótolja az erőforrást.
+- [ ] A jelenlegi kőhiányos 0.6.0 mentés új játék indítása nélkül, adatvesztésmentesen folytatható.
+- [ ] Nincs történeti tárgy-/építmény-duplázás, végtelen erőforrás és save/load után duplán alkalmazott utánpótlás.
+- [ ] Automatizált motorteszt és valódi telefonos regressziós próba zöld.
+
+Előfeltételek: [N10](#n10) mentés/migráció, az [N02](#n02) eredeti idő- és világműködésének feltárandó szabályai. A hibát az [N11](#n11) teljes végigjátszási ellenőrzése is blokkolóként kezeli.
+
 <a id="n11"></a>
 
 ### N11 · Telefonos végigjátszás, teljesítménymérés és kiadási ellenőrzés
@@ -300,6 +329,7 @@ Előfeltételek: [N01](https://github.com/fuloplevente1998/Crusoe_HD-Android/iss
 
 ## Kapcsolódó dokumentumok
 
+- [P0 erőforrás-újratermelődés és kőhiány #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16)
 - [Minijátékok részletes eltérései](MINIGAMES.md)
 - [Tárgygrafikák és ismert korlátok](ITEM_GRAPHICS.md)
 - [Irányítás képekkel](../docs/CONTROLS.md)
