@@ -1,6 +1,9 @@
 package javax.microedition.lcdui;
 
 import android.graphics.Bitmap;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.microedition.shell.AppClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -17,9 +20,19 @@ final class CrusoeHD {
     private static final Set<String> MISSING = new HashSet<>();
     private CrusoeHD() {}
 
+    /** Only allocate high resolution frames if this MIDlet owns both distinctive files. */
+    static boolean isEnabled() {
+        try (InputStream terrain = AppClassLoader.getResourceAsStream(null, "/BIGislandFULL.byt");
+             InputStream atlas = AppClassLoader.getResourceAsStream(null, "/data/BS3.png")) {
+            return terrain != null && atlas != null;
+        } catch (IOException | RuntimeException ignored) {
+            return false;
+        }
+    }
+
     // Original source atlas size and exact clip rectangle identify the character.
     static Bitmap get(Image source, int sx, int sy, int sw, int sh) {
-        if (source == null || source.getWidth() != 348 || source.getHeight() != 36) {
+        if (source == null || !"/data/BS3.png".equals(source.getCrusoeResourceName()) || source.getWidth() != 348 || source.getHeight() != 36) {
             return null;
         }
         String key = keyFor(sx, sy, sw, sh);
