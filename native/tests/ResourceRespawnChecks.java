@@ -15,19 +15,24 @@ public final class ResourceRespawnChecks {
         original[near]=4;original[occupied]=4;original[far]=4;
         original[other]=9;
         world[occupied]=99;world[other]=9; // crafted object and unique item
+        boolean[] reachable=new boolean[32400];Arrays.fill(reachable,true);
         check(!ResourceRespawn.containsStone(world),"Depleted world has no stones");
-        int restored=ResourceRespawn.restoreNearestStone(original,world,10.5f,10.5f);
+        int restored=ResourceRespawn.restoreNearestStone(original,world,10.5f,10.5f,reachable);
         check(restored==far,"Skip player's tile and occupied original stone site");
         check(world[occupied]==99&&world[other]==9,"Preserve crafted and unrelated objects");
         check(world[near]==0&&world[far]==4,"Restore one and only one natural stone");
         check(ResourceRespawn.containsStone(world),"Restored stone is collectible");
-        int next=ResourceRespawn.restoreNearestStone(original,world,10.5f,10.5f);
+        int next=ResourceRespawn.restoreNearestStone(original,world,10.5f,10.5f,reachable);
         check(next==-1,"No more eligible stone deposits when remaining sites are protected");
+        world[far]=0;reachable[far]=false;
+        check(ResourceRespawn.restoreNearestStone(original,world,10.5f,10.5f,reachable)==-1,
+              "Unreachable original stone must not be selected");
+        reachable[far]=true;
         world[far]=0;
-        restored=ResourceRespawn.restoreNearestStone(original,world,10.5f,10.5f);
+        restored=ResourceRespawn.restoreNearestStone(original,world,10.5f,10.5f,reachable);
         check(restored==far,"Collected stone can regrow at its original location");
         byte[] snapshot=world.clone();
-        check(ResourceRespawn.restoreNearestStone(new byte[32400],world,10.5f,10.5f)==-1
+        check(ResourceRespawn.restoreNearestStone(new byte[32400],world,10.5f,10.5f,reachable)==-1
                 &&Arrays.equals(snapshot,world),"Never introduce invented spawn locations");
         boolean thrown=false;
         try{ResourceRespawn.containsStone(new byte[9]);}catch(IllegalArgumentException expected){thrown=true;}
