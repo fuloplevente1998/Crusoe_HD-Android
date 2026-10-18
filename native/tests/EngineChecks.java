@@ -151,6 +151,17 @@ public final class EngineChecks {
         File saved=Files.createTempFile("crusoe-exhausted-stones-",".dat").toFile();
         try {
             depleted.save(saved); // Existing v1 save layout, no migration/destruction.
+            int isolated=5*180+44; // Original rock deposit on the separated northern map.
+            check((original[isolated]&255)==4,"Remote stone source exists in original map");
+            depleted.objects[isolated]=4;
+            depleted.save(saved);
+            GameEngine isolatedRecovery=new GameEngine(data);
+            isolatedRecovery.load(saved);
+            int isolatedCount=0;
+            for(int i=0;i<isolatedRecovery.objects.length;i++)if(isolatedRecovery.objectAt(i)==3)isolatedCount++;
+            check(isolatedCount==2,"Save with only a distant, inaccessible stone recovers one locally");
+            depleted.objects[isolated]=0;
+            depleted.save(saved);
             GameEngine recovered=new GameEngine(data);
             recovered.load(saved);
             int stones=0,source=-1;
