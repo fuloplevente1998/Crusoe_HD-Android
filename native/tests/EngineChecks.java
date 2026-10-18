@@ -185,8 +185,40 @@ public final class EngineChecks {
             for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)atMidnight++;
             check(repeated.day==beforeDay+1&&atMidnight==1,
                   "Midnight changes the day but does not prematurely respawn stones");
+            // Exhaust every renewable kind, not only stone, before 04:00.
+            int[] renewableCodes={1,2,4,7,8,9,12,14,21,22,25,26,27,28,29,
+                    31,32,33,34,36,39,40,65,66,67,68,69,71,72,73,74,75,
+                    76,91,94,99};
+            boolean[] renewable=new boolean[256];
+            for(int code:renewableCodes)renewable[code]=true;
+            int depletedSources=0,occupiedSource=-1,oneOff=-1,animal=-1,placeholder=-1;
+            for(int i=0;i<repeated.objects.length;i++){
+                int code=original[i]&255;
+                if(renewable[code]){repeated.objects[i]=0;depletedSources++;}
+                if(code==9&&occupiedSource<0)occupiedSource=i;
+                if(code==77)oneOff=i;
+                if(code==5&&animal<0)animal=i;
+                if(code==96&&placeholder<0)placeholder=i;
+            }
+            check(depletedSources==1024,"Original map contains 1024 recurring deposits in 36 item categories");
+            check(occupiedSource>=0&&oneOff>=0&&animal>=0&&placeholder>=0,
+                  "Original world contains building, one-off, animal and placeholder regression sites");
+            repeated.objects[occupiedSource]=(byte)100; // Crafted object protects its tile.
+            repeated.objects[oneOff]=0;
+            repeated.objects[animal]=0;
+            repeated.objects[placeholder]=0;
             repeated.hour=3.999f;
             repeated.update(0.1f,0,0);
+            int restoredNatural=0;
+            for(int i=0;i<repeated.objects.length;i++)
+                if(renewable[original[i]&255]&&repeated.objects[i]==original[i])
+                    restoredNatural++;
+            check(restoredNatural==1023,"At 04:00 all 36 original renewable types return except a protected building site");
+            check(repeated.objects[occupiedSource]==(byte)100
+                    &&repeated.objects[oneOff]==0
+                    &&repeated.objects[animal]==0
+                    &&repeated.objects[placeholder]==0,
+                  "Daily map refresh preserves built structures, unique pickups, animals and placeholders");
             int atFour=0;
             for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)atFour++;
             check(atFour==54,"Original 04:00 refresh replenishes all 54 vacant stone source tiles");
