@@ -258,21 +258,21 @@
       "id": "N12",
       "priority": "P0",
       "title": "A gyűjthető tárgyak eredeti újratermelődése; kőhiány miatti softlock",
-      "status": "04:00-s eredeti kő-regeneráció kódja PR #17 alatt; 16/16 kőmodul-teszt kész, natív APK és régi mentéses eszközteszt hátra",
-      "current": "Az eredeti játékban újratermelődtek a pályán lévő gyűjthető dolgok. A natív 0.6.0 GameEngine.interact() objects[index]=0 értékre állítja a felszedett tárgyat, a nap/óra léptetése nem regenerál, a mentés pedig tartósan megőrzi a kimerített objects[] tömböt. A kő tárgyazonosítója 3, kókuszminijátékban is fogyóeszköz. Az eredeti időköz még nem ismert. Draft PR #17: lokálisan elérhető eredeti lelőhelyek alapján mentésmentő respawn + átmeneti új napos utánpótlás; kiadásként nem igazolt. Eredeti JAR vizsgálat: data.ad.s 04:00-kor BIGislandObjects betöltést hajt végre; a data.y.a szűrő kódjai között a kő térképkódja 4 nem szerepel. A kőlelőhelyek frissítése 04:00-ra módosítva.",
+      "status": "36 gyűjthető erőforráskód, 1024 eredeti lelőhely 04:00-s visszatöltése kész a PR #17 forrásában; 22/22 erőforrás-, 321 motorteszt és Android CI zöld; Codex azonos keystore-os frissítés és telefonos mentésteszt hátra",
+      "current": "Eredeti JAR: data.ad.s() minden játékbeli 04:00-nál a BIGislandObjects tárgytérképet újratölti; data.y.a(int) dinamikus/állati kódok listáját kizárja. A natív port 36 rendszeresen gyűjthető természetes tárgykódot 1024 eredeti mezőre állít helyre; nem ír felül meglévő építményt, egyszeri felszerelést vagy foglalt csempét. A 0.6.0-s kőhiányos v1 mentés mentése megmaradt. QA: 22/22 erőforrás teszt, 321 motorfeltétel, Android Actions #39142615210 sikeres. A felhasználó ugyanarra az appra kéri a frissítést, Codexben meglévő keystore-ral; ne készítsünk külön csomagnevű teszt-appot vagy új kulcsot.",
       "work": [
-        "Az eredeti JAR / játékos megfigyelése alapján feltárni, pontosan mely természetes erőforrások, mely helyeken és milyen időzítéssel térnek vissza; a becslést nem nevezni eredeti szabálynak.",
-        "Elsődlegesen a kő (ID 3) készletének helyreállítását implementálni; történeti, egyszer használatos, épített és tárolt objektumok ne regenerálódjanak automatikusan.",
-        "A 0 köves régi mentésekből folytatható játékmenetet biztosítani teljes inventory- és pozícióvesztés nélkül, az N10 mentési/migrációs tervével egyeztetve.",
-        "A respawn-időzítés és az újratermelődött objektumállapot mentését és az idempotens betöltést tesztelni, duplikáció és végtelen farmolás nélkül.",
-        "Motor- és eszköztesztekkel ellenőrizni a kő teljes elfogyasztása, időtelés, mentés, visszatöltés, crafting és kókuszminijáték utánpótlási útvonalát."
+        "Az eredeti JAR 04:00-s tárgytérkép-visszatöltését és data.y.a(int) kizárási listáját ellenőrizni; mind a 36 visszatérő nyersanyagkódot az 1024 eredeti lelőhelyen kezelni.",
+        "A játékos jelenlegi objektumtérképének nem üres mezőit, a felépített és egyszeri objektumokat változatlanul hagyni; az állatok dinamikus újramegjelenése az N06 feladat része.",
+        "A 0 köves régi mentésekből inventory-, pozíció- és történeti állapotvesztés nélküli folytatást biztosítani.",
+        "A mentés/visszatöltés, pihenésen átugrott 04:00, éjfél, minden természeti kategória és építményvédelem automatizált tesztje.",
+        "Codexben a meglévő native-debug.keystore-ral, hu.crusoe.standalone csomagnévvel és 8-as verziókóddal frissítő APK-t készíteni; valódi Androidos mentésfolytatást ellenőrizni."
       ],
       "accept": [
-        "Az eredeti respawn-mechanika igazolt szabályai dokumentáltak; ismeretlen időzítésnél nincs önkényes napi visszaállítás.",
-        "Az összes kő elfogyása után az eredeti feltételek teljesülésével újra elérhető és gyűjthető kő.",
-        "A játékos jelenlegi 0 köves mentése újrakezdés nélkül megmenthető.",
-        "A történeti, épített és egyszer használatos objektumok nem duplikálódnak, és a mentés/visszatöltés nem duplázza az utánpótlást.",
-        "Automatizált motorteszt és telefonos regressziós próba sikeres."
+        "Az eredeti 04:00-s frissítés 36 visszatérő tárgykódja/1024 lelőhelye kód- és tesztalapon ellenőrzött.",
+        "A napi visszatöltés csak üres eredeti helyen történik, az egyszeri tárgyakat/állatokat/építményeket nem duplikálja.",
+        "A 0 köves 0.6.0-s mentés a frissítés után újrakezdés nélkül folytatható.",
+        "Azonos eredeti alkalmazásazonosító, verziókód >=8, a korábbi kiadással egyező tanúsítvány; nincs Windows/ADB/mentésmásolás a felhasználó számára.",
+        "Automata motor/Android teszt és az eredeti mentésen való telefonos próba sikeres."
       ],
       "depends": [
         "N10",
@@ -281,7 +281,8 @@
       "issue_number": 16,
       "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16",
       "issue_state_at_snapshot": "open",
-      "implementation_pr": "https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17"
+      "implementation_pr": "https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17",
+      "codex_handoff": "native/planning/CODEX_UPDATE_HANDOFF.md"
     },
     {
       "id": "N11",
