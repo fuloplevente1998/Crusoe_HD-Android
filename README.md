@@ -1,24 +1,28 @@
-# Crusoe HD – Android
+# Crusoe – saját motoros Android-fejlesztés
 
-Experimental Android rendering project for a modernized **Robinson Crusoe: Shipwrecked** experience, keeping the original Java ME gameplay in a separate, user-supplied runtime file.
+**0.6.0-s alpha:** saját Android/Canvas-motor, natív felületek. Az eredeti öt térképréteg, 120 tárgy és 45 recept mellett mozgás, mentés, halászat, vadászat és kókuszdobálás működik. A teljes történeti port még fejlesztés alatt áll.
 
-## Current status
+Új: folyamatos érintőkaros célzás és horogmozgatás, külön akciógombbal és kétujjas használattal. Az oldalirány a szöget, a fel/le irány az erőt változtatja; az elengedett kar megtartja a beállítást. A kókuszos játékban két találat kell egy kókuszhoz, tíz dobásból legalább ötöt kell leverni. [Irányítás képekkel](native/docs/CONTROLS.md).
 
-- Public repository initialized; **no playable Crusoe APK is published here**.
-- HD renderer integration is experimental and must pass an actual Android build and device test.
-- GitHub Actions may build a debug J2ME Loader-based test APK; it will **not bundle the original game's JAR, JAD, graphics, or extracted code**.
-- Import a legally obtained JAR locally on the phone after installing the test emulator.
+Helyben ellenőrizve: 13 Android/Skia felületi teszt és 307 motorfeltétel, a 0.3.1-es és 0.5.0-s motorral készült helyi mentések visszatöltésével. A két régi mentési fájl helyi tesztbemenet. Az öt pályaréteg változatlan, az APK aláírója megegyezik a korábbi natív alpha aláírójával. Fizikai telefonos teljesítménymérés még nincs.
+
+## Letöltés és projektanyagok
+
+- [0.6.0 natív Android-tesztkiadás](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.6.0-alpha)
+- [Natív forrás és helyi fordítás](native/README.md)
+- [Generált grafikák](native/app/src/main/assets/art) és [előnézetek](native/docs/ARTWORK.md)
+- [Minijátékok eredetihez viszonyított eltérései](native/planning/MINIGAMES.md)
+
+## Hátralévő fejlesztések
+
+[Részletes ROADMAP](native/planning/ROADMAP.md) · [GitHub-összesítő #4](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/4). Tizenegy részfeladat P0/P1 prioritással, jelenlegi állapottal, függőségekkel és ellenőrizhető befejezési feltételekkel.
 
 ## Development rules
 
-1. Maintain original game logic; apply experiments only to the open-source Java ME runtime.
-2. Keep original game assets, extracted resources, and ROM/JAR files **out of the public repository and CI artifacts**.
+1. Preserve original gameplay rules when porting; explicitly document behavior that is still simplified or absent.
+2. Keep original game assets, extracted resources, and ROM/JAR files out of the public repository and CI artifacts.
 3. Separate the original 180×180 tile map and game coordinates from physical screen pixel density.
-4. Make small reversible changes on feature branches, review in PRs, and test on Android before considering release.
-5. Report build status accurately; a green build does not by itself mean HD rendering works in-game.
+4. Keep changes on feature branches, review them in draft PRs and test on Android before release.
+5. A passing build or synthetic rendering test does not establish full game compatibility or measured phone performance.
 
-## Upstream
-
-Runtime based on [J2ME Loader](https://github.com/nikita36078/J2ME-Loader), licensed under Apache-2.0. Preserve its notices and license whenever redistributing its source or binaries. Original game copyrights remain with their respective rights holders.
-
-> This public repository contains only original integration code, configuration, and documentation unless compatible redistribution rights have been confirmed.
+The source branch excludes the original commercial JAR/JAD, directly extracted raw resources, local world-data package and signing keys. Generated project art and native UI previews are included. The native alpha APK is published separately on a download branch and linked from the prerelease. The Java ME game is not executed by this implementation.

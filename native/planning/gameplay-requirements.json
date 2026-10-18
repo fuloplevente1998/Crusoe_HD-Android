@@ -1,0 +1,45 @@
+{
+  "objective": "Self-contained Android game that opens directly, with no Java game manager or JAR import UI.",
+  "original_input_sha256": "f7066eacb94da5e624d488a9b0e058b1f1b70f8c3cb39c6a37a8b8e8e68c74a8",
+  "verified_source_inventory": {
+    "item_entries": 120,
+    "recipes": 45,
+    "map_layers": 5,
+    "map_size": [
+      180,
+      180
+    ],
+    "starting_object_placements": 1379,
+    "tutorial_event_types": 13,
+    "original_classes": 33
+  },
+  "crafting_rule_requirements": {
+    "ingredients_consumed": true,
+    "tools_retained": true,
+    "contexts": {
+      "-1": "anywhere",
+      "9": "tent",
+      "10": "cabin",
+      "18": "pirate shipwreck",
+      "84": "broken raft"
+    },
+    "all_45_original_recipes_required": true
+  },
+  "not_established_by_data_extraction": [
+    "Complete quest progression and ending transitions",
+    "Interaction semantics for every object",
+    "Hunting/fishing minigames",
+    "Original save/load compatibility",
+    "Weather, tides and day/night behavior"
+  ],
+  "architecture_choice_pending": false,
+  "important": "A native rewrite and an original game bundled with an internal Java ME compatibility layer are different deliverables. Neither is established by the previous emulator APK.",
+  "chosen_architecture": "Own native Android game engine, no Java ME compatibility runtime",
+  "backlog": {
+    "baseline_version": "0.6.0-native-alpha",
+    "baseline_commit": "4d88a00d69547fe2e63db86ba180cbd8d7e7bf70",
+    "document": "ROADMAP.md",
+    "tracking_issue": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/4",
+    "reviewed_on": "2026-10-18"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "version": "0.5.0",
+  "origin": "Generated project artwork; not extracted original game images",
+  "files": [
+    {
+      "path": "app/src/main/assets/art/objects.png",
+      "role": "16 környezeti tárgy",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2788949,
+      "sha256": "2b9a6a0aa69e248ed29780cd0e439dd14710a6d106d7898718a25793fa1df7ad"
+    },
+    {
+      "path": "app/src/main/assets/art/robinson.png",
+      "role": "16 járásképkocka, négy irány",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1215843,
+      "sha256": "c7feda949d0b2eddc336bf867028adc6e32965efec6c1b7fcd0f51bb2f814b59"
+    },
+    {
+      "path": "app/src/main/assets/art/title.png",
+      "role": "Főmenü illusztrációja",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3055590,
+      "sha256": "36d22390b2850858be537eb8cfd88d58ab716871b37a161d8677f940bd22c33b"
+    },
+    {
+      "path": "app/src/main/assets/art/terrain.png",
+      "role": "16 tereptextúra",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 3338992,
+      "sha256": "11de2400a64abf66078865959201e67432233dbcf5a3ea7f7cea35435f7cf6e2"
+    },
+    {
+      "path": "app/src/main/assets/art/fauna.png",
+      "role": "16 hal- és állatrajz",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2282553,
+      "sha256": "c59ecb487fe6556e83f9cb71c233c01ed2f3f9d595f222f0f7d731f911cb39db"
+    },
+    {
+      "path": "app/src/main/assets/art/shore.png",
+      "role": "16 kagyló-, parti és gyümölcsikon",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1945184,
+      "sha256": "8b651af289d10e2028fa50606facc5a17917e01eb996c08e982474b068da6b88"
+    },
+    {
+      "path": "app/src/main/assets/art/gear.png",
+      "role": "16 szerszám- és felszerelésikon",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1704242,
+      "sha256": "640306e71418e19e58ecf6c8596ab3ae1b06ab4cc5112a0ed38f18c01f0cc50d"
+    },
+    {
+      "path": "app/src/main/assets/art/supplies.png",
+      "role": "16 alapanyag- és eszközikon",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1887998,
+      "sha256": "425e6b31fc88da9d3218c94b832a133880a488da33bec90e4c3d7a545b05104f"
+    }
+  ]
+}
