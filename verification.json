@@ -1,0 +1,39 @@
+{
+  "version": "0.6.0-native-alpha",
+  "package": "hu.crusoe.standalone",
+  "version_code": 7,
+  "apk_bytes": 19226170,
+  "apk_sha256": "25b85eeaacc43f0056ab6fb886798e2e778905308d3e8da8a2c9426fac2a4b8c",
+  "world_sha256": "324279ccfdb618d769572f1233d64c99a71725f5cf138acc84a7e1c0231bc6ce",
+  "all_5_original_layers_identical": true,
+  "java_me_emulator_webview_classes_absent": true,
+  "jar_jad_class_files_absent": true,
+  "no_requested_permissions": true,
+  "android_ui_tests": 13,
+  "android_ui_failures": 0,
+  "android_ui_errors": 0,
+  "engine_assertions_passed": 307,
+  "old_native_save_loaded": true,
+  "legacy_save_versions_verified": [
+    "0.3.1",
+    "0.5.0"
+  ],
+  "continuous_two_finger_controls": true,
+  "coconut_minigame": true,
+  "same_050_signer_certificate_sha256": "ce51e3426040b1497c65fd230f875e602d4766143ba3f505475e0996599b40c1",
+  "new_game_tile": [
+    7,
+    147
+  ],
+  "original_knife_tile": [
+    11,
+    165
+  ],
+  "original_adjacent_crate_tile": [
+    10,
+    165
+  ],
+  "generated_item_illustrations": 48,
+  "distinct_regression_icons_rendered": 24,
+  "physical_phone_tested": false
+}
