@@ -284,7 +284,7 @@ Előfeltételek: nincs másik részfeladat előfeltételként rögzítve.
 
 **P0 · [#16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) · Kiinduló állapot: hiányzik, a felhasználó jelenlegi mentésében már elfogyott az összes kő.**
 
-**Aktuális fejlesztés:** [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17): eredeti lelőhelyekből és bejárhatósági BFS alapján egy kő visszaállítása, kimerült mentés mentése és ideiglenes napváltásos pótlás. A módosítás nincs Androidon fordítva/tesztelve, nem az igazolt eredeti respawn ütemezés. [Részletes terv és tesztek](RESPAWN_N12.md).
+**Aktuális fejlesztés:** [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17): az eredeti Java ME-játékból igazolt 04:00-s tárgytérkép-frissítés kőre szűkített megvalósítása, a hozzáférhető kő nélküli régi mentések megmentése, 16/16 kőmodul-teszttel. A teljes APK-fordítás és telefonos próba még hátravan. [Részletes forrásvizsgálat és tesztek](RESPAWN_N12.md).
 
 **Felhasználói megfigyelés:** az eredeti Java ME-játékban a pályán lévő erőforrások idővel újra megjelentek. A 0.6.0 natív motorban az `interact()` egyszerűen `objects[index]=0` állapotra állítja a felszedett tárgyat, az `update()` csak a napot/órát lépteti, nem regenerál, a mentés pedig a kimerített `objects[]` tömböt tartósítja. A kő (ID **3**) fogyóeszköz a kókuszminijátékhoz is, ezért az elfogyása blokkolhatja a játékmenetet.
 
