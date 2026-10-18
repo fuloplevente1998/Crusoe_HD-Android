@@ -1,11 +1,11 @@
 package hu.crusoe.standalone;
 
 /**
- * Provisional P0 recovery for naturally placed stones (item ID 3).
+ * Original 04:00 natural-resource renewal and P0 recovery for missing stones.
  *
- * Original Java ME regrowth cadence has not been established yet. Do not call
- * this the original respawn algorithm. We only reuse confirmed starting
- * locations and never overwrite player-placed structures or unique objects.
+ * The original Java ME code reloads the BIGislandObjects map at 04:00 and
+ * filters dynamic objects. We additionally keep native-built structures and
+ * one-off story items intact rather than resetting the whole mutable map.
  */
 public final class ResourceRespawn {
     public static final int STONE_ITEM_ID = 3;
@@ -24,26 +24,52 @@ public final class ResourceRespawn {
     }
 
     /**
-     * Original game refreshes the item map at 04:00. This first-stage port
-     * restores the natural stone subset only, preserving anything currently
-     * occupying the original source site (e.g. crafted structures).
+     * The original game's data.ad.s() reloads BIGislandObjects at 04:00.
+     * data.g.a(String,byte[]) applies the original data.y.a(int) filter.
      *
-     * @return number of newly restored stone tiles
+     * The native port additionally preserves one-time pickups and player-built
+     * structures: only recurring natural resources are restored, and never
+     * over a currently occupied tile or the player's current tile.
      */
-    public static int restoreOriginalStones(byte[] originalObjects, byte[] currentObjects,
-                                            float playerX, float playerY) {
+    public static int restoreOriginalResources(byte[] originalObjects, byte[] currentObjects,
+                                               float playerX, float playerY) {
         checkMap(originalObjects);
         checkMap(currentObjects);
-        final int playerIndex=(int)playerY*MAP_WIDTH+(int)playerX;
-        int count=0;
-        for(int i=0;i<MAP_TILES;i++){
-            if(i==playerIndex)continue;
-            if((originalObjects[i]&255)==STONE_MAP_VALUE&&currentObjects[i]==0){
-                currentObjects[i]=(byte)STONE_MAP_VALUE;
-                count++;
-            }
+
+        // Derive natural, repeatable sources from the verified original map:
+        // do not recreate unique story equipment or placed one-off objects.
+        int[] originalCounts = new int[256];
+        for (byte tile : originalObjects) originalCounts[tile & 255]++;
+        final int playerIndex = (int) playerY * MAP_WIDTH + (int) playerX;
+        int restored = 0;
+        for (int i = 0; i < MAP_TILES; i++) {
+            int originalCode = originalObjects[i] & 255;
+            if (i == playerIndex || currentObjects[i] != 0
+                    || !isRecurringResource(originalCode, originalCounts)) continue;
+            currentObjects[i] = originalObjects[i];
+            restored++;
         }
-        return count;
+        return restored;
+    }
+
+    /**
+     * Original data.y.a(int) excludes animal/dynamic object codes.
+     * The original map has 36 recurring natural item codes (1024 placements).
+     * Map code 96 is a non-collectible placeholder, not a resource.
+     */
+    static boolean isRecurringResource(int mapCode, int[] sourceCounts) {
+        if (mapCode <= 0 || mapCode >= sourceCounts.length
+                || sourceCounts[mapCode] <= 1 || mapCode == 96) return false;
+        return !excludedByOriginalLoader(mapCode);
+    }
+
+    static boolean excludedByOriginalLoader(int code) {
+        return code == 3 || code == 5
+                || (code >= 41 && code <= 45)
+                || (code >= 47 && code <= 50)
+                || (code >= 52 && code <= 54)
+                || (code >= 56 && code <= 60)
+                || (code >= 62 && code <= 64);
     }
 
     /** Is a stone currently adjacent to a player-reachable walking cell? */
