@@ -255,6 +255,34 @@
       "issue_state_at_snapshot": "open"
     },
     {
+      "id": "N12",
+      "priority": "P0",
+      "title": "A gyűjthető tárgyak eredeti újratermelődése; kőhiány miatti softlock",
+      "status": "hiányzik; játékosi jelentés szerint minden kő elfogyott, a folytatás blokkolt",
+      "current": "Az eredeti játékban újratermelődtek a pályán lévő gyűjthető dolgok. A natív 0.6.0 GameEngine.interact() objects[index]=0 értékre állítja a felszedett tárgyat, a nap/óra léptetése nem regenerál, a mentés pedig tartósan megőrzi a kimerített objects[] tömböt. A kő tárgyazonosítója 3, kókuszminijátékban is fogyóeszköz. Az eredeti időköz még nem ismert.",
+      "work": [
+        "Az eredeti JAR / játékos megfigyelése alapján feltárni, pontosan mely természetes erőforrások, mely helyeken és milyen időzítéssel térnek vissza; a becslést nem nevezni eredeti szabálynak.",
+        "Elsődlegesen a kő (ID 3) készletének helyreállítását implementálni; történeti, egyszer használatos, épített és tárolt objektumok ne regenerálódjanak automatikusan.",
+        "A 0 köves régi mentésekből folytatható játékmenetet biztosítani teljes inventory- és pozícióvesztés nélkül, az N10 mentési/migrációs tervével egyeztetve.",
+        "A respawn-időzítés és az újratermelődött objektumállapot mentését és az idempotens betöltést tesztelni, duplikáció és végtelen farmolás nélkül.",
+        "Motor- és eszköztesztekkel ellenőrizni a kő teljes elfogyasztása, időtelés, mentés, visszatöltés, crafting és kókuszminijáték utánpótlási útvonalát."
+      ],
+      "accept": [
+        "Az eredeti respawn-mechanika igazolt szabályai dokumentáltak; ismeretlen időzítésnél nincs önkényes napi visszaállítás.",
+        "Az összes kő elfogyása után az eredeti feltételek teljesülésével újra elérhető és gyűjthető kő.",
+        "A játékos jelenlegi 0 köves mentése újrakezdés nélkül megmenthető.",
+        "A történeti, épített és egyszer használatos objektumok nem duplikálódnak, és a mentés/visszatöltés nem duplázza az utánpótlást.",
+        "Automatizált motorteszt és telefonos regressziós próba sikeres."
+      ],
+      "depends": [
+        "N10",
+        "N02"
+      ],
+      "issue_number": 16,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16",
+      "issue_state_at_snapshot": "open"
+    },
+    {
       "id": "N11",
       "priority": "P1",
       "title": "Telefonos végigjátszás, teljesítménymérés és kiadási ellenőrzés",
@@ -281,7 +309,8 @@
         "N07",
         "N08",
         "N09",
-        "N10"
+        "N10",
+        "N12"
       ],
       "issue_number": 15,
       "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/15",
