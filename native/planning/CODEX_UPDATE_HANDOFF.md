@@ -36,7 +36,7 @@ Sikeres esetben a helyi eredmény: `native/artifacts/Crusoe-Native-0.6.1-Update.
 
 ## Minőségkapu a felhasználói APK-hoz
 
-1. N12 erőforrás- és teljes natív motortesztek, Robolectric/Android tesztek zöldek.
+1. N12 erőforrás- és teljes natív motortesztek, Robolectric/Android tesztek zöldek. Legutóbbi ellenőrzött QA: **61/61 erőforrás-egységteszt, 321 motorellenőrzés**, sikeres `assembleDebug` – [Actions #39147036018](https://github.com/fuloplevente1998/Crusoe_HD-Android/actions/runs/39147036018). Az explicit 36-kódos erőforráslista egyedi, többször előforduló felszerelést is kizár.
 2. Ugyanaz a csomagnév és aláírás; verziókód 8. Ha eltér, **ne telepítsd**.
 3. A telefonon **adatmegőrző frissítésként** telepítendő; a 0.6.0 alkalmazást **nem szabad eltávolítani**.
 4. Az eredeti, kőhiányos játékállásból `Folytatás`, közvetlen kőhelyreállítás és más erőforrások 04:00-s frissülése ellenőrizve.
