@@ -42,6 +42,28 @@ public final class GameEngine {
         return rock&&data.layers[2][i]==0&&objects[i]==0;
     }
     public void stop(){route.clear();walking=false;}
+    private int restoreReachableStone(){
+        int startX=(int)x,startY=(int)y;
+        if(!passable(startX,startY))return -1;
+        boolean[] reachable=new boolean[32400];
+        int[] queue=new int[32400];
+        int head=0,tail=0,start=startY*180+startX;
+        queue[tail++]=start;reachable[start]=true;
+        while(head<tail){
+            int at=queue[head++],cx=at%180,cy=at/180;
+            for(int n=0;n<4;n++){
+                int nx=cx+(n==0?1:n==1?-1:0),ny=cy+(n==2?1:n==3?-1:0);
+                if(nx<0||ny<0||nx>=180||ny>=180)continue;
+                int next=ny*180+nx;
+                if(!reachable[next]&&passable(nx,ny)){
+                    reachable[next]=true;queue[tail++]=next;
+                }
+            }
+        }
+        return ResourceRespawn.restoreNearestStone(
+                data.layers[GameData.OBJECTS],objects,x,y,reachable);
+    }
+
     public void update(float delta,float joyX,float joyY){
         float dt=Math.max(0,Math.min(.1f,delta));walking=false;
         if(dt==0)return; // A fresh display frame must not cancel a pending route.
@@ -68,7 +90,7 @@ public final class GameEngine {
         if(hour>=24){
             hour-=24;day++;
             // Provisional daily stone regrowth. Original cadence still under investigation.
-            ResourceRespawn.restoreNearestStone(data.layers[GameData.OBJECTS],objects,x,y);
+            restoreReachableStone();
         }
         food=Math.max(0,food-dt*.035f);water=Math.max(0,water-dt*.05f);
         energy=Math.max(0,energy-dt*(walking?.025f:.005f));
@@ -269,7 +291,7 @@ public final class GameEngine {
         // resetting inventory or inventing new stone locations.
         int recovery=-1;
         if(inventory[ResourceRespawn.STONE_ITEM_ID]==0&&!ResourceRespawn.containsStone(objects)){
-            recovery=ResourceRespawn.restoreNearestStone(data.layers[GameData.OBJECTS],objects,x,y);
+            recovery=restoreReachableStone();
         }
         if(recovery>=0){
             say("A mentést betöltöttem. A kimerült kőlelőhelyek egyikén új kő jelent meg: "
