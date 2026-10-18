@@ -40,7 +40,7 @@ A DEX-vizsgálat igazolja a saját `GameActivity` jelenlétét, a Java ME- és J
 
 A 0.6.0-s natív alfában a felvehető erőforrás a felszedéskor kikerül a pályáról, de egyelőre **nem regenerálódik**. Felhasználói visszajelzés alapján már az összes kő elfogyott, ezért a játék továbbhaladása blokkolódott; az eredeti Java ME-játékban viszont a világ gyűjthető tárgyai újra megjelentek.
 
-**Az eredeti respawn-időzítés és jogosult tárgytípusok még feltárandók, javítás még nem készült.** A [P0 N12 / #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) feladat megköveteli a meglévő kőhiányos mentés helyreállítását új játék kezdése nélkül, a történeti és épített objektumok duplikálásának elkerülésével. Fejlesztési részletek: [ROADMAP.md](planning/ROADMAP.md).
+**Az eredeti respawn-időzítés és jogosult tárgytípusok még feltárandók.** A [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17) már tartalmaz egy ideiglenes, elérhető kőlelőhelyet visszaállító javítást, de a teljes APK-fordítás és telefonos teszt még hátravan. A [P0 N12 / #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) feladat megköveteli a meglévő kőhiányos mentés helyreállítását új játék kezdése nélkül, a történeti és épített objektumok duplikálásának elkerülésével. Fejlesztési részletek: [ROADMAP.md](planning/ROADMAP.md).
 
 ## Még hiányzik
 
