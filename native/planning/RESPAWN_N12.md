@@ -21,6 +21,16 @@ Az eredeti JAR obfuszkált osztályaiban az alábbi kapcsolódás azonosítható
 
 **Következtetés:** a 04:00-s **teljes eredeti objektumtérkép-beolvasás** bizonyított. A natív port e ciklusban most **mind a 36 többször előforduló természeti erőforrást** helyreállítja a pontos eredeti lelőhelyén, összesen **1 024** lehetséges mezőn. A `data.y.a(int)` szerinti dinamikus állatok kihagyandók; a 96-os helykitöltő és az egyszeri (csak egyetlen eredeti példányú) történeti felszerelések védelmet kapnak. A megmaradt vagy megépített tárgyat nem írjuk felül. Ezek utóbbi biztosítékok tudatos natív játékbiztonsági eltérések az eredeti teljes térkép-felülírástól.
 
+### Azonosítás és regresszióvédelem
+
+A 36 visszatérő térképkódot a korábbi natív 0.6.0 APK-ba csomagolt, SHA-256-tal ellenőrzött `world.pack` **eredeti objektumrétegéből és 120 elemű tárgykatalógusából** ellenőriztük. Kódok (ezek **térképkódok, nem inventory-ID-k**):
+
+`1, 2, 4, 7, 8, 9, 12, 14, 21, 22, 25, 26, 27, 28, 29, 31, 32, 33, 34, 36, 39, 40, 65, 66, 67, 68, 69, 71, 72, 73, 74, 75, 76, 91, 94, 99`
+
+Ez a felsorolás **1 024** eredeti lelőhelyet fed le. A kezdeti, „egy kódból egynél több van a térképen” heurisztikát eltávolítottuk: ha egy kés, más egyedi felszerelés vagy új építmény több példányban található, az még **nem** jelent automatikusan újratermelődő erőforrást. A helyszín/objektumazonosító és jelenlegi foglaltság alapján történik a visszatöltés. Ha a világadatok új kiadása új természetes tárgytípust ad hozzá, azt külön audit után lehet engedélyezni.
+
+A `ResourceRespawnChecks` tesztek külön ellenőrzik a 36 típus összes eredeti térképkódját, a két példányban elhelyezett történeti tárgyak tiltását, a helykitöltő és dinamikus állatok kihagyását, a játékos alatti mező védelmét és a naponta egyszeri idempotens frissítést.
+
 ## Megvalósított 04:00-s erőforrás-frissítés
 
 1. Játékállás betöltésekor, **ha a játékosnál nincs kő és a jelenlegi bejárható területéről egy kő sem megközelíthető**, helyreállít egy követ.
