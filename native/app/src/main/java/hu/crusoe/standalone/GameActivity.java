@@ -62,6 +62,26 @@ public final class GameActivity extends Activity {
         if(count==0){content.addView(label("Még üres a tarisznyád.",20,Color.WHITE));content.addView(label("A tárgyhoz sétálva a Felvesz gombbal gyűjthetsz. Néhány növényhez késre, a rönkökhöz fejszére lesz szükséged.",16,Color.LTGRAY));}
         sheet("Tarisznya",content);
     }
+    public void actions(){
+        LinearLayout content=list();
+        Button collect=new Button(this);collect.setText("Közeli tárgy használata / felvétele");content.addView(collect);
+        int target=engine.selected>=0&&engine.objects[engine.selected]!=0?engine.selected:engine.nearest();
+        final int animal=target;
+        content.addView(label("Eszköz használata",20,Color.rgb(239,211,158)));
+        AlertDialog dialog=sheet("Művelet",content);
+        collect.setOnClickListener(v->{String result=engine.interact();engine.say(result);message(result);dialog.dismiss();save();});
+        for(int tool:new int[]{14,83,81}){
+            String need=engine.harvestRequirement(tool,animal);
+            Button use=new Button(this);use.setText(data.items[tool].name);use.setEnabled(need.isEmpty());content.addView(use);
+            if(!need.isEmpty())content.addView(label(need,14,Color.LTGRAY));
+            else content.addView(label(tool==14?"1 giliszta · húzd a horgot a halra, engedd el, majd húzd a felszínre.":tool==83?"1 burgonya · 10 hal, legfeljebb 5 merítés.":"1 nyílcsomag · 10 lövés. A lefelé tartó nyíllal célozz.",14,Color.LTGRAY));
+            use.setOnClickListener(v->{String error=engine.startHarvest(tool,animal,System.nanoTime());
+                if(!error.isEmpty()){message(error);return;}
+                dialog.dismiss();gameView.screen=GameView.HARVEST;gameView.lastFrame=0;gameView.resetInput();save();gameView.invalidate();
+            });
+        }
+        content.addView(label("A csalit vagy nyílcsomagot az induláskor használod el. Kilépéskor a minijáték megszakad.",14,Color.LTGRAY));
+    }
     public void crafting(){showCrafting(false);}
     private void showCrafting(boolean readyOnly){
         LinearLayout content=list();
@@ -106,7 +126,9 @@ public final class GameActivity extends Activity {
             }).create();
         dialog.setOnDismissListener(d->{openDialogs=Math.max(0,openDialogs-1);paused=!foreground||openDialogs>0;gameView.lastFrame=0;gameView.invalidate();});dialog.show();
     }
-    @Override public void onBackPressed(){if(gameView.screen==GameView.MAP){gameView.screen=GameView.WORLD;gameView.invalidate();}else if(gameView.screen==GameView.WORLD)pauseMenu();else super.onBackPressed();}
-    @Override protected void onPause(){super.onPause();foreground=false;paused=true;gameView.resetInput();save();}
+    @Override public void onBackPressed(){if(gameView.screen==GameView.HARVEST){gameView.closeHarvest();}else if(gameView.screen==GameView.MAP){gameView.screen=GameView.WORLD;gameView.invalidate();}else if(gameView.screen==GameView.WORLD)pauseMenu();else super.onBackPressed();}
+    @Override protected void onPause(){super.onPause();foreground=false;paused=true;gameView.resetInput();
+        if(engine.harvest!=null&&engine.harvest.finished){engine.say(engine.finishHarvest());gameView.screen=GameView.WORLD;}
+        save();}
     @Override protected void onResume(){super.onResume();foreground=true;paused=openDialogs>0;if(gameView!=null){gameView.lastFrame=0;gameView.invalidate();}}
 }

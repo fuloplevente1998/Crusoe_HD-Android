@@ -89,4 +89,56 @@ public class GameActivityTest {
         a.journal();assertTrue(a.paused);
         org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().dismiss();Shadows.shadowOf(Looper.getMainLooper()).idle();assertFalse(a.paused);
     }
+    private void touch(GameActivity a,int action,float x,float y){
+        long now=android.os.SystemClock.uptimeMillis();MotionEvent event=MotionEvent.obtain(now,now,action,x,y,0);
+        a.gameView.onTouchEvent(event);event.recycle();
+    }
+    private android.widget.Button button(android.view.View view,String text){
+        if(view instanceof android.widget.Button b&&text.equals(b.getText().toString()))return b;
+        if(view instanceof android.view.ViewGroup group)for(int i=0;i<group.getChildCount();i++){android.widget.Button found=button(group.getChildAt(i),text);if(found!=null)return found;}
+        return null;
+    }
+    private void shore(GameEngine e,int terrain){
+        for(int yy=1;yy<179;yy++)for(int xx=1;xx<179;xx++)if(e.passable(xx,yy)){
+            e.x=xx+.5f;e.y=yy+.5f;if(e.nearWater(terrain))return;
+        }throw new AssertionError("Missing original shore");
+    }
+    @Test public void actionSheetLaunchesRodAndTouchCatchesReelsSavesExactlyOneFish()throws Exception {
+        GameActivity a=create();a.start(false);shore(a.engine,5);
+        a.engine.inventory[14]=1;a.engine.inventory[90]=2;render(a,720,1280);
+        touch(a,MotionEvent.ACTION_DOWN,580,1110);touch(a,MotionEvent.ACTION_UP,580,1110);
+        android.app.AlertDialog dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        android.widget.Button use=button(dialog.getWindow().getDecorView(),a.data.items[14].name);
+        assertNotNull(use);assertTrue(use.isEnabled());use.performClick();Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(a.paused);assertEquals(GameView.HARVEST,a.gameView.screen);assertEquals(1,a.engine.inventory[90]);
+        render(a,720,1280);HarvestGame g=a.engine.harvest;int reward=g.reward;
+        screenshot("native-fishing",render(a,720,1280));
+        touch(a,MotionEvent.ACTION_DOWN,g.fishX[0],205+g.fishY[0]);
+        touch(a,MotionEvent.ACTION_UP,g.fishX[0],205+g.fishY[0]);assertTrue(g.hooked);
+        touch(a,MotionEvent.ACTION_DOWN,g.hookX,205+g.hookY);
+        touch(a,MotionEvent.ACTION_MOVE,360,245);touch(a,MotionEvent.ACTION_UP,360,245);
+        render(a,720,1280);assertTrue(g.won);assertEquals(1,a.engine.inventory[reward]);
+        render(a,720,1280);assertEquals(1,a.engine.inventory[reward]);assertNull(a.engine.harvest);
+        touch(a,MotionEvent.ACTION_UP,360,1220);assertEquals(GameView.WORLD,a.gameView.screen);
+        a.start(true);assertEquals(1,a.engine.inventory[reward]);assertEquals(1,a.engine.inventory[90]);
+    }
+    @Test public void netAndHuntingRenderAndBackCancelsWithoutRefundOrWorldMovement()throws Exception {
+        GameActivity a=create();a.start(false);shore(a.engine,4);
+        a.engine.inventory[83]=1;a.engine.inventory[26]=1;
+        assertEquals("",a.engine.startHarvest(83,-1,42));a.gameView.screen=GameView.HARVEST;
+        screenshot("native-net",render(a,720,1280));float x=a.engine.x,y=a.engine.y;
+        touch(a,MotionEvent.ACTION_UP,360,1220);assertTrue(a.engine.harvest.dropping);
+        a.paused=true;float time=a.engine.harvest.elapsed;
+        a.gameView.lastFrame=System.nanoTime()-90_000_000;render(a,720,1280);
+        assertEquals(time,a.engine.harvest.elapsed,0);a.paused=false;
+        a.onBackPressed();assertEquals(GameView.WORLD,a.gameView.screen);assertNull(a.engine.harvest);assertEquals(0,a.engine.inventory[26]);
+        assertEquals(x,a.engine.x,0);assertEquals(y,a.engine.y,0);
+        int target=a.engine.findObject(4);a.engine.x=target%180+.5f;a.engine.y=target/180+1.5f;
+        a.engine.inventory[81]=1;a.engine.inventory[45]=1;
+        assertEquals("",a.engine.startHarvest(81,target,9));a.gameView.screen=GameView.HARVEST;
+        screenshot("native-hunting",render(a,720,1280));
+        touch(a,MotionEvent.ACTION_UP,279,1110);assertEquals(60,a.engine.harvest.angle,0);
+        touch(a,MotionEvent.ACTION_UP,360,1220);assertTrue(a.engine.harvest.flying);assertEquals(1,a.engine.harvest.attempts);
+        a.onBackPressed();assertNull(a.engine.harvest);assertEquals(4,a.engine.objectAt(target));
+    }
 }

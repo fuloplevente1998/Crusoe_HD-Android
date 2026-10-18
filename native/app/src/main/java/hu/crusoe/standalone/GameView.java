@@ -8,7 +8,7 @@ import java.util.*;
 
 /** GPU-backed native Android scene renderer. World coordinates are tile units. */
 public final class GameView extends View {
-    public static final int TITLE=0,WORLD=1,MAP=2;
+    public static final int TITLE=0,WORLD=1,MAP=2,HARVEST=3;
     private static final float TILE=48;
     private static final int INK=0xff102e2e,GOLD=0xffedc37e,WHITE=0xfff6efd9;
     private static final int[] PALETTE={0xffe6d798,0xff6e9d41,0xffb77d4a,0xff777b3b,0xff78d8c2,0xff33bcd3,0xff1789bf,0xff73715a,0xffb5a26c,0xff3e732b,0xff8a603b,0xff2c502a,0xff237b85,0xff1a607a,0xff10436c,0xff4b4030};
@@ -18,7 +18,11 @@ public final class GameView extends View {
     private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     private final Rect source=new Rect();
     private final RectF dest=new RectF();
-    private final Bitmap terrain,objects,robinson,title,map;
+    private final Bitmap terrain,objects,robinson,title,map,fauna;
+    private HarvestGame shownHarvest;
+    private String harvestResult;
+    private float harvestTop,harvestScale;
+    private int hookPointer=-1;
     private final Paint[] terrainPaints=new Paint[16];
     private float logicalHeight=1280,scale=1,cameraX,cameraY,joyX,joyY,joyOriginX,joyOriginY;
     private int joyPointer=-1,tapPointer=-1;
@@ -29,7 +33,7 @@ public final class GameView extends View {
 
     public GameView(GameActivity activity){
         super(activity);this.activity=activity;setFocusable(true);setKeepScreenOn(true);
-        terrain=load("terrain.png");objects=load("objects.png");robinson=load("robinson.png");title=load("title.png");
+        terrain=load("terrain.png");objects=load("objects.png");robinson=load("robinson.png");title=load("title.png");fauna=load("fauna.png");
         int[] pixels=new int[32400];for(int i=0;i<pixels.length;i++)pixels[i]=PALETTE[activity.data.layers[0][i]&15];
         map=Bitmap.createBitmap(pixels,180,180,Bitmap.Config.ARGB_8888);
         Bitmap mask=Bitmap.createBitmap(48,48,Bitmap.Config.ARGB_8888);
@@ -52,7 +56,7 @@ public final class GameView extends View {
     }
     private Bitmap load(String name){try(InputStream in=getContext().getAssets().open("art/"+name)){BitmapFactory.Options o=new BitmapFactory.Options();o.inScaled=false;return BitmapFactory.decodeStream(in,null,o);}catch(IOException e){throw new IllegalStateException(e);}}
     public void centerCamera(){cameraX=activity.engine.x*TILE;cameraY=activity.engine.y*TILE;lastFrame=0;}
-    public void resetInput(){joyPointer=tapPointer=-1;joyX=joyY=0;}
+    public void resetInput(){joyPointer=tapPointer=hookPointer=-1;joyX=joyY=0;}
     private void text(Canvas c,String s,float x,float y,float size,int color){p.setShader(null);p.setColor(color);p.setTypeface(sans);p.setTextSize(size);c.drawText(s,x,y,p);}
     private void centered(Canvas c,String s,float x,float y,float size,int color){p.setTypeface(sans);p.setTextSize(size);text(c,s,x-p.measureText(s)/2,y,size,color);}
     private void box(Canvas c,float l,float t,float r,float b,float radius,int color){p.setShader(null);p.setColor(color);dest.set(l,t,r,b);c.drawRoundRect(dest,radius,radius,p);}
@@ -65,13 +69,13 @@ public final class GameView extends View {
         int width=getWidth()-getPaddingLeft()-getPaddingRight(),height=getHeight()-getPaddingTop()-getPaddingBottom();if(width<=0||height<=0)return;
         scale=width/720f;logicalHeight=height/scale;
         canvas.save();canvas.translate(getPaddingLeft(),getPaddingTop());canvas.scale(scale,scale);canvas.clipRect(0,0,720,logicalHeight);
-        if(screen==TITLE)drawTitle(canvas);else if(screen==MAP)drawMap(canvas);else {
+        if(screen==TITLE)drawTitle(canvas);else if(screen==MAP)drawMap(canvas);else if(screen==HARVEST)drawHarvest(canvas);else {
             long now=System.nanoTime();float dt=lastFrame==0?0:Math.min(.1f,(now-lastFrame)/1e9f);lastFrame=now;
             if(!activity.paused){activity.engine.update(dt,joyX,joyY);saveSeconds+=dt;if(saveSeconds>20){activity.save();saveSeconds=0;}}
             float mix=1-(float)Math.exp(-dt*9);cameraX+=(activity.engine.x*TILE-cameraX)*mix;cameraY+=(activity.engine.y*TILE-cameraY)*mix;
             drawWorld(canvas);drawHUD(canvas);
         }
-        canvas.restore();if(screen==WORLD&&!activity.paused)postInvalidateOnAnimation();
+        canvas.restore();if((screen==WORLD||screen==HARVEST)&&!activity.paused)postInvalidateOnAnimation();
     }
     private void drawTitle(Canvas c){
         float h=logicalHeight;
@@ -84,7 +88,7 @@ public final class GameView extends View {
         text(c,"Egy sziget. Egy esély a túlélésre.",44,h*.49f+236,23,WHITE);
         float first=h-243;box(c,40,first,680,first+78,17,GOLD);centered(c,"ÚJ KALAND",360,first+49,25,INK);
         box(c,40,first+94,680,first+166,17,0x884b756c);centered(c,"FOLYTATÁS",360,first+139,24,activity.hasSave()?WHITE:0xff83978e);
-        centered(c,"Fejlesztői változat · 0.3",360,h-27,18,0xffa6beb3);
+        centered(c,"Fejlesztői változat · 0.4",360,h-27,18,0xffa6beb3);
     }
     private void drawWorld(Canvas c){
         GameEngine e=activity.engine;
@@ -119,7 +123,8 @@ public final class GameView extends View {
                 if(id>=0){
                     int cell=artFor(id);float size=sizeFor(id);
                     if(e.selected==i){p.setColor(0x88fff0b7);c.drawOval(px-25,py-17,px+25,py+4,p);}
-                    sprite(c,objects,cell,px,py,size,size);
+                    int animal=faunaFor(id);
+                    sprite(c,animal>=0?fauna:objects,animal>=0?animal:cell,px,py,size,size);
                     if(id==17||id==18||id==84){String name=activity.data.items[id].name;box(c,px-110,py-size-40,px+110,py-size-3,10,0xdd102e2e);centered(c,name,px,py-size-15,17,GOLD);}
                 }
             }
@@ -144,6 +149,11 @@ public final class GameView extends View {
         if(id<=2||id>=24&&id<=33||id>=64&&id<=75)return 14;
         return 2;
     }
+    private int faunaFor(int id){return switch(id){
+        case 40->0;case 56->1;case 57->2;case 58->3;case 2->4;case 59->5;case 4->6;case 41->7;
+        case 42->8;case 43->9;case 44->10;case 46->11;case 47->12;case 48,49->13;
+        case 51,52,53,62,63->14;case 61->15;default->-1;
+    };}
     private float sizeFor(int id){
         if(id==18||id==19)return 285;if(id==9||id==10)return 195;if(id==17)return 122;if(id==38)return 145;
         if(id==84||id==94||id==93)return 150;if(id==6)return 115;if(id==16)return 120;
@@ -190,10 +200,87 @@ public final class GameView extends View {
         float px=left+e.x/180*side,py=top+e.y/180*side;p.setColor(WHITE);c.drawCircle(px,py,7,p);p.setColor(0xffcf785b);c.drawCircle(px,py,4,p);
         wrapped(c,"A fehér pont Robinson helye. Bökj a térképre: ha van szabad út, elindulsz a kiválasztott hely felé.",28,top+side+47,660,21,WHITE,3);
     }
+    private void drawHarvest(Canvas c){
+        HarvestGame active=activity.engine.harvest;
+        if(active!=null&&active!=shownHarvest){shownHarvest=active;harvestResult=null;}
+        HarvestGame g=shownHarvest;
+        if(g==null){screen=WORLD;lastFrame=0;return;}
+        long now=System.nanoTime();float dt=lastFrame==0?0:Math.min(.1f,(now-lastFrame)/1e9f);lastFrame=now;
+        if(!activity.paused)g.update(dt);
+        if(g.finished&&harvestResult==null){harvestResult=activity.engine.finishHarvest();activity.engine.say(harvestResult);activity.save();}
+        boolean bow=g.tool==HarvestGame.BOW;
+        c.drawColor(INK);text(c,bow?"VADÁSZAT":g.tool==14?"HORGÁSZAT":"HALÁSZAT HÁLÓVAL",30,60,28,GOLD);
+        text(c,"VISSZA",588,60,20,WHITE);
+        wrapped(c,bow?"A lefelé tartó nyíllal találd el az állatot. 10 lövésed van.":g.tool==14?"Húzd a horgot a halra, majd engedd el. Kapás után húzd a felszínre!":"Bökj a Merítés gombra. Fogj 10 halat legfeljebb 5 merítéssel!",30,106,655,22,WHITE,3);
+        harvestTop=205;harvestScale=Math.min(1,(logicalHeight-455)/640);
+        c.save();c.translate(0,harvestTop);c.scale(1,harvestScale);
+        p.setShader(new LinearGradient(0,0,0,640,bow?0xff94b878:0xff56c5cc,bow?0xff234c39:0xff113f6b,Shader.TileMode.CLAMP));c.drawRect(20,0,700,640,p);p.setShader(null);
+        if(bow){
+            for(int i=0;i<5;i++)sprite(c,objects,0,70+i*150,310,180,260);
+            box(c,20,584,700,640,0,0xff786441);
+            sprite(c,fauna,Math.max(0,faunaFor(g.targetItem)),g.animalX,g.animalY+35,135,120);
+            p.setColor(GOLD);p.setStrokeWidth(5);p.setStyle(Paint.Style.STROKE);c.drawArc(28,520,89,630,-70,140,false,p);c.drawLine(64,526,64,624,p);p.setStyle(Paint.Style.FILL);
+            float ax=g.flying?g.arrowX:54,ay=g.flying?g.arrowY:580;
+            float vx=g.flying?g.arrowVX:(float)Math.cos(Math.toRadians(g.angle))*60,vy=g.flying?g.arrowVY:-(float)Math.sin(Math.toRadians(g.angle))*60;
+            float length=(float)Math.hypot(vx,vy);vx=vx/length*30;vy=vy/length*30;
+            p.setColor(WHITE);p.setStrokeWidth(4);c.drawLine(ax-vx,ay-vy,ax+vx,ay+vy,p);c.drawCircle(ax+vx,ay+vy,5,p);
+        }else{
+            p.setColor(0x447ce7dc);for(int i=0;i<9;i++)c.drawCircle(65+i*73,70+(i*83)%520,7,p);
+            int count=g.tool==83?7:1;
+            for(int i=0;i<count;i++)if(!g.caught[i]){
+                float fx=g.hooked?g.hookX:g.fishX[i],fy=g.hooked?g.hookY:g.fishY[i];
+                sprite(c,fauna,g.tool==83?(i%2==0?4:5):faunaFor(g.reward),fx,fy+31,100,76);
+            }
+            p.setColor(WHITE);p.setStrokeWidth(3);
+            if(g.tool==14){
+                c.drawLine(360,0,g.hookX,g.hookY,p);p.setStyle(Paint.Style.STROKE);c.drawArc(g.hookX-8,g.hookY-4,g.hookX+8,g.hookY+17,0,210,false,p);p.setStyle(Paint.Style.FILL);
+                text(c,g.hooked?"KAPÁS! HÚZD FEL!":"FELSZÍN",35,43,22,GOLD);
+            }else{
+                float ny=g.dropping?g.netY:5;
+                for(int i=0;i<9;i++)c.drawLine(260+i*25,ny-25,260+i*25,ny+25,p);
+                for(int i=0;i<3;i++)c.drawLine(260,ny-25+i*25,460,ny-25+i*25,p);
+            }
+        }
+        c.restore();
+        float controls=logicalHeight-190;
+        if(bow){
+            centered(c,"SZÖG: "+(int)g.angle+"°     ERŐ: "+(int)g.power+"%     LÖVÉS: "+g.attempts+"/10",360,controls-35,20,WHITE);
+            String[] buttons={"SZÖG −","SZÖG +","ERŐ −","ERŐ +"};
+            for(int i=0;i<4;i++){box(c,24+i*174,controls-10,186+i*174,controls+46,10,0xff33544b);centered(c,buttons[i],105+i*174,controls+25,19,WHITE);}
+        }else centered(c,g.tool==83?g.total+" / 10 hal     "+g.attempts+" / 5 merítés":"A fogáshoz a halon engedd el az ujjad.",360,controls+18,21,WHITE);
+        box(c,30,logicalHeight-106,690,logicalHeight-28,18,GOLD);
+        centered(c,g.finished?"VISSZA A SZIGETRE":bow?(g.flying?"A NYÍL REPÜL…":"LÖVÉS"):g.tool==83?(g.dropping?"MERÍTÉS…":"MERÍTÉS"):"HOROG MEGAKASZTÁSA",360,logicalHeight-56,23,INK);
+        if(g.finished){box(c,35,harvestTop+160,685,harvestTop+340,20,0xf2102e2e);centered(c,g.won?"SIKERES FOGÁS":"PRÓBÁLD ÚJRA",360,harvestTop+210,28,GOLD);wrapped(c,harvestResult,65,harvestTop+259,590,23,WHITE,3);}
+    }
+    public void closeHarvest(){
+        if(activity.engine.harvest!=null){
+            if(activity.engine.harvest.finished)activity.engine.say(activity.engine.finishHarvest());
+            else activity.engine.cancelHarvest();
+        }
+        shownHarvest=null;harvestResult=null;screen=WORLD;lastFrame=0;resetInput();activity.save();invalidate();
+    }
+    private boolean harvestTouch(MotionEvent event,int action,int index,int pointer,float x,float y){
+        if(activity.paused)return true;
+        HarvestGame g=activity.engine.harvest!=null?activity.engine.harvest:shownHarvest;if(g==null)return true;
+        if(action==MotionEvent.ACTION_UP&&y<90&&x>570){closeHarvest();return true;}
+        if(g.finished){invalidate();if(action==MotionEvent.ACTION_UP&&y>=logicalHeight-106)closeHarvest();return true;}
+        float gy=(y-harvestTop)/harvestScale;
+        if(g.tool==14){
+            if(action==MotionEvent.ACTION_DOWN&&gy>=0&&gy<=640){hookPointer=pointer;g.moveHook(x,gy);}
+            else if(action==MotionEvent.ACTION_MOVE){int i=event.findPointerIndex(hookPointer);if(i>=0)g.moveHook((event.getX(i)-getPaddingLeft())/scale,((event.getY(i)-getPaddingTop())/scale-harvestTop)/harvestScale);}
+            else if(action==MotionEvent.ACTION_UP&&pointer==hookPointer){hookPointer=-1;g.action();}
+            else if(action==MotionEvent.ACTION_UP&&y>=logicalHeight-106)g.action();
+        }else if(action==MotionEvent.ACTION_UP){
+            if(y>=logicalHeight-106)g.action();
+            else if(g.tool==81&&y>=logicalHeight-200&&y<=logicalHeight-144){int button=Math.min(3,Math.max(0,(int)((x-24)/174)));g.aim(g.angle+(button==0?-5:button==1?5:0),g.power+(button==2?-5:button==3?5:0));}
+        }
+        invalidate();return true;
+    }
     @Override public boolean onTouchEvent(android.view.MotionEvent event){
         int action=event.getActionMasked(),index=event.getActionIndex(),pointer=event.getPointerId(index);
         float x=(event.getX(index)-getPaddingLeft())/scale,y=(event.getY(index)-getPaddingTop())/scale;
         if(action==MotionEvent.ACTION_CANCEL){resetInput();return true;}
+        if(screen==HARVEST)return harvestTouch(event,action,index,pointer,x,y);
         if(screen!=WORLD){
             if(action==MotionEvent.ACTION_UP){performClick();
                 if(screen==TITLE){float first=logicalHeight-243;
@@ -222,7 +309,7 @@ public final class GameView extends View {
     private void tap(float x,float y){
         GameEngine e=activity.engine;float h=logicalHeight;
         if(y>h-78){e.stop();int tab=Math.min(3,(int)(x/180));if(tab==0)activity.inventory();else if(tab==1)activity.crafting();else if(tab==2){screen=MAP;resetInput();}else activity.journal();return;}
-        if(x>=480&&y>=h-217&&y<=h-123){String result=e.interact();e.say(result);activity.message(result);activity.save();return;}
+        if(x>=480&&y>=h-217&&y<=h-123){activity.actions();return;}
         if(x>620&&y<100){activity.pauseMenu();return;}
         if(y<260)return;
         float ox=360-cameraX,oy=h*.49f-cameraY;int tx=(int)Math.floor((x-ox)/TILE),ty=(int)Math.floor((y-oy)/TILE);

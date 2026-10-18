@@ -1,8 +1,8 @@
 # Crusoe – saját motoros Android-játék
 
-**0.3.1-native-alpha:** önálló Android-alkalmazás saját játéklogikával és Canvas-alapú rajzolással. Közvetlenül a játék főmenüje indul, nincs Java ME-kompatibilitás, emulátor, JAR-import, WebView vagy távoli tartalom. Android 8.0+ szükséges.
+**0.4.0-native-alpha:** önálló Android-alkalmazás saját játéklogikával és Canvas-alapú rajzolással. Közvetlenül a játék főmenüje indul, nincs Java ME-kompatibilitás, emulátor, JAR-import, WebView vagy távoli tartalom. Android 8.0+ szükséges.
 
-Ez az első játszható alap, **nem a teljes eredeti játék elkészült portja**. A korábbi emulátoros APK külön fejlesztési kísérlet volt.
+Ez egy bővülő játszható alap, **nem a teljes eredeti játék elkészült portja**. A korábbi emulátoros APK külön fejlesztési kísérlet volt.
 
 ## Elkészült
 
@@ -13,17 +13,22 @@ Ez az első játszható alap, **nem a teljes eredeti játék elkészült portja*
 - Saját, ellenőrzőösszeggel védett mentés, automatikus és kézi mentéssel. Ez nem kompatibilis az eredeti RMS-mentéssel.
 - Nagy felbontású, korábban készült grafikai alapok. A terep határai interpoláltak, a textúrák világkoordinátákhoz igazodnak. Nincs teljes szigetméretű, nagy felbontású bitmap lefoglalva.
 
+- Saját, érintéses horgászat, hálózás és ballisztikus vadászat, eszköz- és csalifeltételekkel; új hal- és állatgrafikai atlasz. A részletes egyezések és eltérések: [MINIGAMES.md](planning/MINIGAMES.md).
+- A 0.3.1-es saját motor mentése betölthető. Az Android csomagnév és az aláírás megmaradt.
+
 ## Ellenőrizve
 
-A teljes Android APK lefordult JDK 21 / Gradle 9.6.0 / AGP 9.4.1 / SDK 36 környezetben. Hat Android/Skia felületi teszt átment: saját indítóképernyő és érintéses játékindítás, két portréfelbontás és térképrajzolás, érintőkaros mozgás, folytatás mentésből, a tarisznya/készítés/napló megnyitása és a szünet feloldása, valamint térképes út kijelölése és a mozgás elindulása a visszatérés után.
+A teljes Android APK lefordult JDK 21 / Gradle 9.6.0 / AGP 9.4.1 / SDK 36 környezetben. Nyolc Android/Skia felületi teszt átment: saját indítóképernyő és érintéses játékindítás, két portréfelbontás és térképrajzolás, érintőkaros mozgás, folytatás mentésből, a tarisznya/készítés/napló megnyitása és a szünet feloldása, valamint térképes út kijelölése és a mozgás elindulása a visszatérés után.
 
-A külön motorvizsgálat 256 feltételt ellenőriz. Ebben szerepel az eredeti kezdőparti késhez vezető út, valódi tárgyfelvétel és fejszekészítés az eredeti pályáról gyűjtött anyagokkal, mind a 45 recept külön vizsgálata, eszközmegőrzés, hibás készítés atomikussága és sérült mentés elutasítása. Ez 256 ellenőrzési feltétel, nem 256 külön végigjátszás.
+A külön motorvizsgálat 280 feltételt ellenőriz. Ebben szerepel az eredeti kezdőparti késhez vezető út, valódi tárgyfelvétel és fejszekészítés az eredeti pályáról gyűjtött anyagokkal, mind a 45 recept külön vizsgálata, eszközmegőrzés, hibás készítés atomikussága és sérült mentés elutasítása. Ez 280 ellenőrzési feltétel, nem 280 külön végigjátszás.
+
+A két új felületi teszt a műveletmenüből induló teljes horgászati érintéssort és a jutalom mentését, továbbá a háló/vadászat rajzolását, vezérlését és megszakítását ellenőrzi. A motorfeltételek a minijátékok követelményeit, fogásait és egyszeri készletmódosításait, illetve egy tényleges régi mentést is ellenőriznek.
 
 A DEX-vizsgálat igazolja a saját `GameActivity` jelenlétét, a Java ME- és J2ME Loader-osztályok hiányát. Az APK nem tartalmaz JAR/JAD fájlt, hálózati vagy tárhelyengedélyt nem kér. Az aláírás ellenőrzése sikeres.
 
 ## Még hiányzik
 
-A teljes eredeti küldetéslánc és történeti állapotgép; az eredeti halászati/vadászati minijátékok; az állatok mozgása és harca; az időjárás és árapály szabályai; a sziget további területeit megnyitó speciális interakciók és a befejezés. A 13 kinyert bevezető esemény nem az összes küldetés.
+A teljes eredeti küldetéslánc és történeti állapotgép; a minijátékok pontos mozgása, időzítése és összes mellékhatása; az állatok szigetbeli mozgása és teljes harca; az időjárás és árapály szabályai; a sziget további területeit megnyitó speciális interakciók és a befejezés. A 13 kinyert bevezető esemény nem az összes küldetés.
 
 A tereprétegek adatai pontosak, de a dekorációk és tárgyak grafikai hozzárendelése még közelítő; több tárgy közös illusztrációt használ. A túlélési/időmodell és az építés helyezése jelenleg egyszerűsített, az eredetihez való viselkedési egyezésük nincs igazolva. Egyes eredeti leírások és bevezető szövegek még angolul jelennek meg. A grafika és az animáció sem végleges.
 
@@ -36,7 +41,7 @@ A nyilvános forrás nem tartalmazza az eredeti játékból kinyert adatokat, a 
 ```sh
 python3 scripts/extract_original.py /private/original.jar --out private/extracted
 python3 scripts/prepare_data.py private/extracted
-# Helyi grafika: app/src/main/assets/art/{objects,robinson,title,terrain}.png
+# Helyi grafika: app/src/main/assets/art/{objects,robinson,title,terrain,fauna}.png
 export JAVA_HOME=/path/to/jdk21
 export ANDROID_HOME=/path/to/android-sdk
 bash scripts/build_android.sh

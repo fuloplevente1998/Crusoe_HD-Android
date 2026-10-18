@@ -19,6 +19,76 @@ public final class EngineChecks {
         for(int tile:candidates)if(e.navigate(tile%180,tile/180))return tile;
         throw new AssertionError("No reachable original item: "+item);
     }
+    static void shore(GameEngine e,int terrain){
+        for(int y=1;y<179;y++)for(int x=1;x<179;x++)if(e.passable(x,y)){
+            e.x=x+.5f;e.y=y+.5f;if(e.nearWater(terrain))return;
+        }throw new AssertionError("No original shore for terrain "+terrain);
+    }
+    static void harvestChecks()throws Exception {
+        GameEngine e=new GameEngine(data);shore(e,5);
+        check(e.nearWater(5),"Rod uses original deep-water terrain 5");
+        check(!e.startHarvest(14,-1,1).isEmpty()&&e.harvest==null,"Missing rod cannot start fishing");
+        e.inventory[14]=1;
+        check(!e.startHarvest(14,-1,1).isEmpty(),"Rod requires original worm bait");
+        e.inventory[90]=2;
+        check(e.startHarvest(14,-1,1).isEmpty()&&e.inventory[90]==1,"Starting a rod session reserves exactly one worm");
+        check(!e.startHarvest(14,-1,2).isEmpty()&&e.inventory[90]==1,"Repeated start cannot spend extra bait or replace the active game");
+        HarvestGame g=e.harvest;int reward=g.reward;
+        check(reward==40||reward==56||reward==57||reward==58,"Rod chooses only an original deep-water fish");
+        g.moveHook(g.fishX[0],g.fishY[0]);g.action();
+        check(g.hooked&&!g.finished&&e.inventory[reward]==0,"Hooking a fish requires reeling before any reward");
+        g.moveHook(360,40);e.finishHarvest();
+        check(e.inventory[reward]==1&&e.inventory[14]==1,"Reeling to the surface awards one fish and preserves the rod");
+        e.finishHarvest();check(e.inventory[reward]==1,"Repeated result settlement cannot duplicate a reward");
+        e.startHarvest(14,-1,2);e.cancelHarvest();
+        check(e.inventory[90]==0&&e.harvest==null,"Cancelling keeps bait spent and leaves no active session");
+        e.inventory[90]=1;e.x=10.5f;e.y=147.5f;
+        if(!e.nearWater(5))check(!e.startHarvest(14,-1,3).isEmpty()&&e.inventory[90]==1,"Inland rod use fails without consuming bait");
+        e.inventory[83]=1;e.inventory[26]=2;shore(e,4);
+        check(e.startHarvest(83,-1,4).isEmpty()&&e.inventory[26]==1,"Net uses original shallow water 4 and one potato");
+        g=e.harvest;for(int n=0;n<5;n++){g.action();g.action();while(g.dropping)g.update(.1f);if(g.finished)break;}
+        check(g.finished&&g.attempts<=5,"Net session terminates within five drops; duplicate taps do not add attempts");
+        check(g.won==(g.total>=10),"Net victory requires at least ten caught fish");
+        e.finishHarvest();
+        // A controlled interception verifies capture along the moving net, including reward settlement.
+        e.startHarvest(83,-1,5);g=e.harvest;reward=g.reward;
+        for(int n=0;n<2;n++){
+            for(int i=0;i<7;i++){g.fishX[i]=360;g.fishSpeed[i]=0;}
+            g.action();while(g.dropping)g.update(.1f);
+        }
+        check(g.won&&g.total>=10&&g.attempts==2,"Net catches fish along its descent and can win before the fifth drop");
+        int count=e.inventory[reward];e.finishHarvest();
+        check(e.inventory[reward]==count+1&&e.inventory[83]==1,"Successful net awards one original result and retains its tool");
+        int target=e.findObject(4);e.x=target%180+.5f;e.y=target/180+1.5f;e.selected=target;
+        int old=e.inventory[4];e.interact();
+        check(e.inventory[4]==old&&e.objectAt(target)==4,"Animals cannot be collected as ordinary objects");
+        e.inventory[81]=1;
+        check(!e.startHarvest(81,target,7).isEmpty(),"Bow requires an arrow bundle");
+        e.inventory[45]=2;e.x=0;e.y=0;
+        check(!e.startHarvest(81,target,7).isEmpty()&&e.inventory[45]==2,"Distant hunting is rejected atomically");
+        e.x=target%180+.5f;e.y=target/180+1.5f;
+        check(e.startHarvest(81,target,7).isEmpty()&&e.inventory[45]==1,"Hunting reserves one bundle for up to ten shots");
+        e.cancelHarvest();
+        // Find an actual ballistic hit using legal aim settings, rather than setting a victory flag.
+        HarvestGame success=null;
+        outer:for(int angle=10;angle<=85;angle+=5)for(int power=10;power<=100;power+=5){
+            g=new HarvestGame(81,target,4,9);g.aim(angle,power);g.action();
+            for(int t=0;t<120&&g.flying&&!g.finished;t++)g.update(.05f);
+            if(g.won){success=g;break outer;}
+        }
+        check(success!=null&&success.arrowVY>0,"A legal ballistic shot can hit the animal only while descending");
+        e.startHarvest(81,target,9);g=e.harvest;g.aim(success.angle,success.power);g.action();
+        while(!g.finished&&g.flying)g.update(.05f);e.finishHarvest();
+        check(e.inventory[4]==old+1&&e.objectAt(target)==-1&&e.inventory[81]==1,"Successful hunt removes the original animal once and retains the bow");
+        g=new HarvestGame(81,target,4,9);g.aim(85,10);
+        for(int n=0;n<10;n++){g.action();g.action();while(g.flying&&!g.finished)g.update(.1f);}
+        check(g.finished&&!g.won&&g.attempts==10,"Hunting stops after ten misses without duplicate-tap shots");
+        File legacy=new File("artifacts/baseline-031/island-v1.save");
+        if(legacy.isFile()){
+            GameEngine restored=new GameEngine(data);restored.load(legacy);
+            check(restored.inventory[76]==1&&restored.inventory[8]==7&&restored.health==73&&restored.food==62&&restored.water==51&&restored.energy==40&&restored.day==9&&restored.hour==14.5f&&restored.seen.get(3)&&restored.findObject(76)<0,"Actual 0.3.1 engine save loads with inventory, world, stats and journal intact");
+        }
+    }
     public static void main(String[] args)throws Exception {
         data=new GameData(new FileInputStream(args[0]));
         check(data.items.length==120&&data.recipes.length==45,"Complete original item and recipe catalog");
@@ -71,6 +141,6 @@ public final class EngineChecks {
         int near=reachable(e,8);e.navigate(near%180,near/180);int pending=e.route.size();
         e.update(0,0,0);check(e.energy==energy,"Zero-time frame cannot advance survival state");
         check(pending>0&&e.route.size()==pending,"First zero-time display frame preserves the requested path");
-        file.delete();System.out.println("Engine checks passed: "+passed);
+        file.delete();harvestChecks();System.out.println("Engine checks passed: "+passed);
     }
 }

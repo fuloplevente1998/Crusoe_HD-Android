@@ -15,6 +15,7 @@ public final class GameEngine {
     public float x,y,hour=8,health=100,food=100,water=100,energy=100,animation;
     public int day=1,direction=0,selected=-1;
     public boolean walking;
+    public HarvestGame harvest;
     public String notice="A hullámok partra sodortak. Keresd meg a roncsból szétszóródott felszerelést.";
     public int noticeRevision;
 
@@ -113,6 +114,7 @@ public final class GameEngine {
         if(id==18||id==84)return "Itt építhetsz: "+data.items[id==18?19:94].name+". Nyisd meg a Készítés menüt.";
         if(id==19||id==94)return "A hajózás ebben a próbaváltozatban még nem érhető el.";
         GameData.Item item=data.items[id];
+        if(item.attributes[2]>0)return "Ehhez használd: "+data.items[item.attributes[2]].name+". Nyisd meg a Művelet menüt.";
         int tool=item.attributes[0];
         if(tool<0)return "Ehhez külön művelet kell, amely ebben a próbaváltozatban még nem érhető el.";
         if(tool>0&&inventory[tool]==0)return "Szükséges eszköz: "+data.items[tool].name;
@@ -175,6 +177,48 @@ public final class GameEngine {
         health=clamp(health+item.attributes[6]);return "Elfogyasztottad: "+item.name;
     }
     private static float clamp(float n){return Math.max(0,Math.min(100,n));}
+    public boolean nearWater(int terrain){
+        int tx=(int)x,ty=(int)y;
+        for(int[] d:new int[][]{{1,0},{-1,0},{0,1},{0,-1}}){int xx=tx+d[0],yy=ty+d[1];
+            if(xx>=0&&yy>=0&&xx<180&&yy<180&&data.tile(0,xx,yy)==terrain)return true;
+        }return false;
+    }
+    public String harvestRequirement(int tool,int target){
+        if(harvest!=null)return "Már folyamatban van egy művelet.";
+        if(tool!=14&&tool!=83&&tool!=81)return "Ez nem halászati vagy vadászati eszköz.";
+        if(inventory[tool]<=0)return "Szükséges eszköz: "+data.items[tool].name;
+        int bait=tool==14?90:tool==83?26:45;
+        if(inventory[bait]<=0)return "Szükséges: "+data.items[bait].name;
+        if(tool==81){
+            if(target<0||target>=objects.length||objectAt(target)<0||data.items[objectAt(target)].attributes[2]!=81)return "Válassz egy vadászható állatot.";
+            if(!near(target,1.8f))return "Menj közelebb az állathoz.";
+        }else if(!nearWater(tool==83?4:5))return tool==83?"A hálót sekély víz (világos part) mellett használd.":"A botot mélyebb víz (türkiz tenger) mellett használd.";
+        return "";
+    }
+    public String startHarvest(int tool,int target,long seed){
+        String missing=harvestRequirement(tool,target);if(!missing.isEmpty())return missing;
+        int item=tool==81?objectAt(target):-1;
+        inventory[tool==14?90:tool==83?26:45]--; // Reserve once, also on cancellation/restart.
+        stop();harvest=new HarvestGame(tool,target,item,seed);return "";
+    }
+    public String finishHarvest(){
+        HarvestGame game=harvest;if(game==null||!game.finished)return "A művelet még tart.";
+        harvest=null;
+        if(game.won){
+            if(game.tool==81){
+                if(objectAt(game.targetTile)!=game.targetItem)return "Az állat már nincs itt.";
+                objects[game.targetTile]=0;selected=-1;
+            }
+            inventory[game.reward]++;return "Siker! +1 "+data.items[game.reward].name;
+        }
+        if(game.tool==81){
+            int damage=switch(game.targetItem){case 42,43->50;case 48->10;case 49->20;default->0;};
+            health=clamp(health-damage);
+            if(damage>0)return "Nem sikerült a vadászat. Az állat megsebesített: −"+damage+" élet.";
+        }
+        return game.tool==83?"Most "+game.total+" hal került a hálóba; a cél 10. Próbáld újra.":"Ezúttal nem sikerült. Próbáld újra.";
+    }
+    public void cancelHarvest(){harvest=null;stop();say("A művelet megszakadt. Az elhasznált csali vagy nyílcsomag nem jár vissza.");}
     public void save(File file)throws IOException {
         ByteArrayOutputStream bytes=new ByteArrayOutputStream();DataOutputStream out=new DataOutputStream(bytes);
         out.writeInt(0x43535631);out.writeUTF(data.sourceHash);out.writeFloat(x);out.writeFloat(y);out.writeFloat(hour);
@@ -200,6 +244,6 @@ public final class GameEngine {
         // Apply only after the complete save passed validation.
         x=nx;y=ny;hour=nh;day=nd;health=stats[0];food=stats[1];water=stats[2];energy=stats[3];
         System.arraycopy(inv,0,inventory,0,120);System.arraycopy(world,0,objects,0,32400);
-        seen.clear();seen.or(BitSet.valueOf(new long[]{flags}));selected=-1;stop();say("A mentést betöltöttem.");
+        seen.clear();seen.or(BitSet.valueOf(new long[]{flags}));selected=-1;harvest=null;stop();say("A mentést betöltöttem.");
     }
 }
