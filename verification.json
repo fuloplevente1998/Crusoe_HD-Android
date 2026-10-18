@@ -1,0 +1,29 @@
+{
+  "application_id": "hu.crusoe.standalone",
+  "version_code": 214509923,
+  "version_name": "0.6.2-native-alpha",
+  "certificate_sha256": "ce51e3426040b1497c65fd230f875e602d4766143ba3f505475e0996599b40c1",
+  "world_sha256": "324279ccfdb618d769572f1233d64c99a71725f5cf138acc84a7e1c0231bc6ce",
+  "apk_sha256": "a877755912f7fd530244ada8aecdb8a0d14eb42c755037f8f73d3284fc66a6bc",
+  "apk_bytes": 19182018,
+  "previous_version_code": 7,
+  "same_package_and_signer": true,
+  "identity_checks": {
+    "missing-key": true,
+    "old-version": true,
+    "wrong-certificate": true,
+    "same_signer_package_higher_code_than_060": true,
+    "equal_version_rejected_by_previous_check": true,
+    "native_engine_no_emulator_or_webview": true
+  },
+  "resource_assertions": 61,
+  "engine_assertions": 323,
+  "android_ui_tests": 13,
+  "original_renewable_types": 36,
+  "original_resource_locations": 1024,
+  "physical_phone_tested": false,
+  "legacy_save_fixtures": [
+    "0.3.1",
+    "0.5.0"
+  ]
+}
