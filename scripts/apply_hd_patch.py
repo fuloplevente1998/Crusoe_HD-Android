@@ -106,13 +106,13 @@ replace_once("Image.java",
 replace_once("Graphics.java",
     "\t\tcanvas = new Canvas(image.getBitmap());\n\t\tcanvas.save();",
     """\t\tcanvas = new Canvas(image.getBitmap());
-\t\tif (image.getCrusoeScale() > 1) canvas.scale(image.getCrusoeScale(), image.getCrusoeScale());
-\t\tcanvas.save();""")
+\t\tcanvas.save();
+\t\tif (image.getCrusoeScale() > 1) canvas.scale(image.getCrusoeScale(), image.getCrusoeScale());""")
 replace_once("Graphics.java",
     "\t\tcanvas.restoreToCount(1);\n\t\tcanvas.save();",
     """\t\tcanvas.restoreToCount(1);
-\t\tif (image.getCrusoeScale() > 1) canvas.scale(image.getCrusoeScale(), image.getCrusoeScale());
-\t\tcanvas.save();""")
+\t\tcanvas.save();
+\t\tif (image.getCrusoeScale() > 1) canvas.scale(image.getCrusoeScale(), image.getCrusoeScale());""")
 replace_once("Graphics.java",
     "\t\tRect srcR = rect;\n\t\tRectF dstR = rectF;\n\t\tfloat dx;",
     """\t\tBitmap hdReplacement = CrusoeHD.get(image, x_src, y_src, width, height);
