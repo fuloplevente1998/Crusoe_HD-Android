@@ -44,13 +44,13 @@ public final class GameEngine {
     private void advanceTime(float hours){
         if(hours<=0)return;
         float previousHour=hour;
-        // Original Java ME routine data.ad.s() reloads BIGislandObjects at 04:00,
+        // Original Java ME data.ad.s() reloads all eligible BIGislandObjects at 04:00,
         // once while the in-game hour equals four; keep this clock boundary.
         boolean crossesFour=previousHour<4
                 ? previousHour+hours>=4 : previousHour+hours>=28;
         hour+=hours;
         while(hour>=24){hour-=24;day++;}
-        if(crossesFour)ResourceRespawn.restoreOriginalStones(
+        if(crossesFour)ResourceRespawn.restoreOriginalResources(
                 data.layers[GameData.OBJECTS],objects,x,y);
     }
     public void stop(){route.clear();walking=false;}
