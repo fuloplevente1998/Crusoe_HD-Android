@@ -13,6 +13,7 @@ public final class GameView extends View {
     private static final int INK=0xff102e2e,GOLD=0xffedc37e,WHITE=0xfff6efd9;
     private static final int[] PALETTE={0xffe6d798,0xff6e9d41,0xffb77d4a,0xff777b3b,0xff78d8c2,0xff33bcd3,0xff1789bf,0xff73715a,0xffb5a26c,0xff3e732b,0xff8a603b,0xff2c502a,0xff237b85,0xff1a607a,0xff10436c,0xff4b4030};
     public final GameActivity activity;
+    public final ItemArt itemArt;
     public int screen=TITLE;
     public long lastFrame;
     private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
@@ -34,6 +35,7 @@ public final class GameView extends View {
     public GameView(GameActivity activity){
         super(activity);this.activity=activity;setFocusable(true);setKeepScreenOn(true);
         terrain=load("terrain.png");objects=load("objects.png");robinson=load("robinson.png");title=load("title.png");fauna=load("fauna.png");
+        itemArt=new ItemArt(activity,objects,fauna);
         int[] pixels=new int[32400];for(int i=0;i<pixels.length;i++)pixels[i]=PALETTE[activity.data.layers[0][i]&15];
         map=Bitmap.createBitmap(pixels,180,180,Bitmap.Config.ARGB_8888);
         Bitmap mask=Bitmap.createBitmap(48,48,Bitmap.Config.ARGB_8888);
@@ -61,8 +63,11 @@ public final class GameView extends View {
     private void centered(Canvas c,String s,float x,float y,float size,int color){p.setTypeface(sans);p.setTextSize(size);text(c,s,x-p.measureText(s)/2,y,size,color);}
     private void box(Canvas c,float l,float t,float r,float b,float radius,int color){p.setShader(null);p.setColor(color);dest.set(l,t,r,b);c.drawRoundRect(dest,radius,radius,p);}
     private void sprite(Canvas c,Bitmap atlas,int cell,float x,float y,float width,float height){
+        sprite(c,atlas,cell,x,y,width,height,255);
+    }
+    private void sprite(Canvas c,Bitmap atlas,int cell,float x,float y,float width,float height,int alpha){
         source.set((cell%4)*atlas.getWidth()/4,(cell/4)*atlas.getHeight()/4,((cell%4)+1)*atlas.getWidth()/4,((cell/4)+1)*atlas.getHeight()/4);
-        dest.set(x-width/2,y-height,width/2+x,y);p.setColor(Color.WHITE);p.setShader(null);c.drawBitmap(atlas,source,dest,p);
+        dest.set(x-width/2,y-height,width/2+x,y);p.setColor(Color.WHITE);p.setAlpha(alpha);p.setShader(null);c.drawBitmap(atlas,source,dest,p);p.setAlpha(255);
     }
     @Override protected void onDraw(Canvas canvas){
         super.onDraw(canvas);
@@ -88,7 +93,7 @@ public final class GameView extends View {
         text(c,"Egy sziget. Egy esély a túlélésre.",44,h*.49f+236,23,WHITE);
         float first=h-243;box(c,40,first,680,first+78,17,GOLD);centered(c,"ÚJ KALAND",360,first+49,25,INK);
         box(c,40,first+94,680,first+166,17,0x884b756c);centered(c,"FOLYTATÁS",360,first+139,24,activity.hasSave()?WHITE:0xff83978e);
-        centered(c,"Fejlesztői változat · 0.4",360,h-27,18,0xffa6beb3);
+        centered(c,"Fejlesztői változat · 0.5",360,h-27,18,0xffa6beb3);
     }
     private void drawWorld(Canvas c){
         GameEngine e=activity.engine;
@@ -114,18 +119,25 @@ public final class GameView extends View {
                 int i=yy*180+xx;float px=ox+(xx+.5f)*TILE,py=oy+(yy+1)*TILE;
                 int decoration=activity.data.layers[2][i]&255;
                 if(decoration>0){boolean palm=decoration==5||decoration==13||decoration==18||decoration==21||decoration==22||decoration==49;
-                    int cell=palm?0:decoration==35?8:4;float size=palm?148:decoration==35?110:76;
-                    sprite(c,objects,cell,px,py,size,size*(palm?1.2f:1));
+                    int cell=decoration==68||decoration==69?9:
+                        decoration==50||decoration==51||decoration==52?12:
+                        decoration==55||decoration==58||decoration==65?1:
+                        decoration==56||decoration==57||decoration==62||decoration==63?2:
+                        palm?0:decoration==35?8:4;
+                    float size=palm?148:decoration==35?110:decoration==68||decoration==69?108:76;
+                    float height=size*(palm?1.2f:1),heroX=ox+e.x*TILE,heroY=oy+e.y*TILE+4;
+                    boolean coversPlayer=size>=100&&py>heroY&&py-height<heroY-24&&Math.abs(px-heroX)<size*.44f;
+                    sprite(c,objects,cell,px,py,size,height,coversPlayer?90:255);
                 }
                 int rock=activity.data.layers[4][i]&255;
                 if(rock>0&&rock<50&&!e.passable(xx,yy)&&decoration==0&&e.objects[i]==0)sprite(c,objects,1,px,py,65,60);
                 int id=e.objectAt(i);
                 if(id>=0){
-                    int cell=artFor(id);float size=sizeFor(id);
+                    float size=sizeFor(id);
                     if(e.selected==i){p.setColor(0x88fff0b7);c.drawOval(px-25,py-17,px+25,py+4,p);}
-                    int animal=faunaFor(id);
-                    sprite(c,animal>=0?fauna:objects,animal>=0?animal:cell,px,py,size,size);
-                    if(id==17||id==18||id==84){String name=activity.data.items[id].name;box(c,px-110,py-size-40,px+110,py-size-3,10,0xdd102e2e);centered(c,name,px,py-size-15,17,GOLD);}
+                    itemArt.draw(c,id,px,py,size,size);
+                    if(id==17||id==18||id==84||id==76){String name=activity.data.items[id].name;float half=id==76?38:110;
+                        box(c,px-half,py-size-31,px+half,py-size-1,10,0xdd102e2e);centered(c,name,px,py-size-10,17,GOLD);}
                 }
             }
         }
@@ -141,20 +153,15 @@ public final class GameView extends View {
         GameEngine e=activity.engine;int frame=e.walking?((int)e.animation)%4:0;
         sprite(c,robinson,e.direction*4+frame,ox+e.x*TILE,oy+e.y*TILE+4,106,106);
     }
-    private int artFor(int id){
-        if(id==17)return 11;if(id==18)return 5;if(id==19||id==94)return 7;if(id==9||id==10||id==15||id==85)return 6;
-        if(id==16||id==82)return 15;if(id==3||id==21)return 1;if(id==6)return 3;if(id==7)return 13;
-        if(id==11||id==93||id==35)return 12;if(id==38)return 8;if(id==1)return 14;
-        if(id>=76&&id<=92||id==22||id==23||id==96||id==97)return 9;
-        if(id<=2||id>=24&&id<=33||id>=64&&id<=75)return 14;
-        return 2;
-    }
     private int faunaFor(int id){return switch(id){
         case 40->0;case 56->1;case 57->2;case 58->3;case 2->4;case 59->5;case 4->6;case 41->7;
         case 42->8;case 43->9;case 44->10;case 46->11;case 47->12;case 48,49->13;
         case 51,52,53,62,63->14;case 61->15;default->-1;
     };}
     private float sizeFor(int id){
+        if(id==76)return 94;
+        if(id>=64&&id<=75||id==90)return 72;
+        if(id==0||id>=24&&id<=33||id>=77&&id<=80||id==86||id==89||id==96||id==97)return 82;
         if(id==18||id==19)return 285;if(id==9||id==10)return 195;if(id==17)return 122;if(id==38)return 145;
         if(id==84||id==94||id==93)return 150;if(id==6)return 115;if(id==16)return 120;
         if(id>=40&&id<=63)return 64;return 58;

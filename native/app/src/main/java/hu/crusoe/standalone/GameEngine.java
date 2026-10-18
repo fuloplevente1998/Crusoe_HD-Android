@@ -21,7 +21,8 @@ public final class GameEngine {
 
     public GameEngine(GameData data){
         this.data=data;objects=data.layers[GameData.OBJECTS].clone();
-        int start=findWalkable(10,147);x=start%180+.5f;y=start/180+.5f;
+        // Original new-game coordinates are one-based (8,148).
+        int start=findWalkable(7,147);x=start%180+.5f;y=start/180+.5f;
         visit();
     }
     public void say(String text){notice=text;noticeRevision++;}
@@ -140,6 +141,7 @@ public final class GameEngine {
         }
         return amount;
     }
+    public int toolAmount(int id){return id>=0&&id<inventory.length?availableTool(id):0;}
     public String missing(GameData.Recipe recipe){
         ArrayList<String> parts=new ArrayList<>();
         if(!contextAvailable(recipe.context))parts.add("Hely: "+data.items[recipe.context].name);

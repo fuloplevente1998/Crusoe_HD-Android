@@ -1,12 +1,12 @@
 # Crusoe – saját motoros Android-fejlesztés
 
-Ez az ág az önálló Android-játék **0.4.0-s alpha-változatát** tartalmazza. Saját játéklogika és natív Canvas-rajzolás; nincs Java ME-kompatibilitási réteg, J2ME Loader, JAR-importáló felület vagy WebView.
+Ez az ág a saját Android/Canvas-motoros játék **0.5.0-s alpha-változatát** tartalmazza. Az eredeti öt térképréteg, 120 tárgybejegyzés és 45 recept mellett érintéses mozgás, mentés, horgászat, hálózás és íjas vadászat működik. A teljes történeti port még nem készült el.
 
-A projekt, a reprodukció és a pontos korlátok a [native/README.md](native/README.md) fájlban találhatók. A teljes eredeti küldetéslánc, pontos minijáték-viselkedés, állati ellenfelek, árapály és befejezés átültetése még hátravan. A korábbi emulátoros kísérlet külön, a `feat/hd-renderer-v01` ágon és PR #2-ben marad meg.
+Új: közös tárgyazonos ikonok a pályán, a natív tarisznyában és a recepteknél. Külön kagyló-, gyümölcs-, gomba- és szerszámgrafikák, képes készítési kártyák és hozzávalólisták. Az eredeti kezdőhely pontosítása és a kés melletti láda helyes megjelenítése; opcionális út a késhez a naplóból.
 
-Helyben ellenőrizve: mind az öt eredeti térképréteg bájtpontos betöltése, 280 motorfeltétel (beleértve mind a 45 receptet), nyolc Android/Skia felületi teszt és sikeres önálló APK-fordítás. Fizikai telefonos teljesítményteszt még nincs. Az APK nem tartalmaz Java ME- vagy J2ME Loader-osztályt.
+Helyben ellenőrizve: 280 motorfeltétel, 11 Android/Skia felületi teszt, öt bájtpontos térképréteg és aláírt APK. A 0.3.1-es natív mentés betölthető. Fizikai telefonos teljesítménymérés még nincs. A korábbi emulátoros kísérlet PR #2-ben külön marad.
 
-Új: érintéses horgászat, hálózás és ballisztikus vadászat, eredeti eszköz-/csalifeltételekkel. A 0.3.1-es natív mentések betölthetők. A minijátékok időzítése és állatviselkedése egyelőre közelítő; [részletes eltérések](native/planning/MINIGAMES.md).
+Részletek és helyi fordítás: [native/README.md](native/README.md). [Tárgygrafikák és korlátok](native/planning/ITEM_GRAPHICS.md), [minijátékok egyezései és eltérései](native/planning/MINIGAMES.md).
 
 ## Development rules
 

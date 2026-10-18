@@ -103,6 +103,59 @@ public class GameActivityTest {
             e.x=xx+.5f;e.y=yy+.5f;if(e.nearWater(terrain))return;
         }throw new AssertionError("Missing original shore");
     }
+    private Bitmap dialogImage(android.app.AlertDialog dialog){
+        View view=dialog.getWindow().getDecorView();
+        view.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1150,View.MeasureSpec.AT_MOST));
+        int height=view.getMeasuredHeight();view.layout(0,0,720,height);
+        Bitmap image=Bitmap.createBitmap(720,height,Bitmap.Config.ARGB_8888);view.draw(new Canvas(image));return image;
+    }
+    private boolean containsWebView(View view){
+        if(view instanceof android.webkit.WebView)return true;
+        if(view instanceof android.view.ViewGroup group)for(int i=0;i<group.getChildCount();i++)if(containsWebView(group.getChildAt(i)))return true;
+        return false;
+    }
+    @Test public void originalKnifeIsBesideOriginalCrateAndCanBeFoundFromJournal()throws Exception {
+        GameActivity a=create();a.start(false);GameEngine e=a.engine;
+        assertEquals(7.5f,e.x,0);assertEquals(147.5f,e.y,0);
+        int knife=e.findObject(76);assertEquals(165*180+11,knife);
+        assertEquals(68,a.data.layers[GameData.DECOR][knife-1]&255);
+        a.journal();android.app.AlertDialog dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        android.widget.Button find=button(dialog.getWindow().getDecorView(),"Út a késhez");assertNotNull(find);find.performClick();Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(a.paused);assertFalse(e.route.isEmpty());assertEquals(knife,e.selected);
+        int limit=20000;while(!e.route.isEmpty()&&limit-->0)e.update(.05f,0,0);assertTrue(limit>0);assertTrue(e.near(knife,1.8f));
+        a.gameView.centerCamera();screenshot("native-knife-crate",render(a,720,1280));
+        e.interact();assertEquals(1,e.inventory[76]);assertEquals(-1,e.objectAt(knife));
+        assertEquals(68,a.data.layers[GameData.DECOR][knife-1]&255); // Picking up the knife leaves its neighboring crate.
+    }
+    @Test public void shellsFoodAndKnifeHaveDifferentActualRenderedIcons()throws Exception {
+        GameActivity a=create();int[] ids={1,64,65,66,67,68,70,71,72,73,74,75,76,77,0,24,25,26,27,28,30,31,32,33};
+        java.util.ArrayList<Bitmap> icons=new java.util.ArrayList<>();
+        Bitmap gallery=Bitmap.createBitmap(720,((ids.length+3)/4)*190,Bitmap.Config.ARGB_8888);Canvas sheet=new Canvas(gallery);sheet.drawColor(0xff102e2e);
+        Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);p.setColor(0xfff2dfb9);p.setTextSize(17);
+        for(int n=0;n<ids.length;n++){
+            Bitmap icon=Bitmap.createBitmap(128,128,Bitmap.Config.ARGB_8888);a.gameView.itemArt.draw(new Canvas(icon),ids[n],64,128,128,128);
+            int opaque=0;for(int y=0;y<128;y++)for(int x=0;x<128;x++)if(Color.alpha(icon.getPixel(x,y))>128)opaque++;
+            assertTrue("Empty icon for "+ids[n],opaque>250);
+            for(Bitmap previous:icons)assertFalse("Two different items share the same rendered icon: "+ids[n],icon.sameAs(previous));icons.add(icon);
+            sheet.drawBitmap(icon,n%4*180+26,n/4*190+10,null);
+            String name=a.data.items[ids[n]].name;sheet.drawText(name,n%4*180+9,n/4*190+166,p);
+        }
+        screenshot("native-item-icons",gallery);
+    }
+    @Test public void nativeBackpackAndCraftingShowIconsAndCraftFromRecipeDetails()throws Exception {
+        GameActivity a=create();a.start(false);a.engine.inventory[76]=1;a.engine.inventory[3]=1;a.engine.inventory[8]=1;a.engine.inventory[6]=1;a.engine.inventory[67]=2;
+        a.inventory();android.app.AlertDialog bag=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        View content=bag.getWindow().getDecorView();assertFalse(containsWebView(content));assertNotNull(content.findViewWithTag("icon:67"));
+        screenshot("native-backpack",dialogImage(bag));bag.dismiss();Shadows.shadowOf(Looper.getMainLooper()).idle();
+        a.crafting();android.app.AlertDialog recipes=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        content=recipes.getWindow().getDecorView();assertFalse(containsWebView(content));assertNotNull(content.findViewWithTag("icon:5"));
+        screenshot("native-crafting",dialogImage(recipes));content.findViewWithTag("recipe:5").performClick();
+        android.app.AlertDialog detail=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();content=detail.getWindow().getDecorView();
+        assertNotNull(content.findViewWithTag("icon:3"));assertNotNull(content.findViewWithTag("icon:8"));assertNotNull(content.findViewWithTag("icon:6"));
+        android.widget.Button create=button(content,"Elkészítés");assertNotNull(create);assertTrue(create.isEnabled());screenshot("native-recipe",dialogImage(detail));create.performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();assertEquals(1,a.engine.inventory[5]);assertEquals(1,a.engine.inventory[76]);assertEquals(0,a.engine.inventory[3]);
+        org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().dismiss();Shadows.shadowOf(Looper.getMainLooper()).idle();assertFalse(a.paused);
+    }
     @Test public void actionSheetLaunchesRodAndTouchCatchesReelsSavesExactlyOneFish()throws Exception {
         GameActivity a=create();a.start(false);shore(a.engine,5);
         a.engine.inventory[14]=1;a.engine.inventory[90]=2;render(a,720,1280);
