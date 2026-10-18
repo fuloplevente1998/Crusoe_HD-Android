@@ -181,32 +181,39 @@ public final class EngineChecks {
             repeated.hour=23.999f;
             int beforeDay=repeated.day;
             repeated.update(0.1f,0,0);
-            int afterDayCount=0;
-            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)afterDayCount++;
-            check(repeated.day==beforeDay+1&&afterDayCount==2,
-                  "New game day renews one original stone location");
+            int atMidnight=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)atMidnight++;
+            check(repeated.day==beforeDay+1&&atMidnight==1,
+                  "Midnight changes the day but does not prematurely respawn stones");
+            repeated.hour=3.999f;
             repeated.update(0.1f,0,0);
-            int sameDay=0;
-            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)sameDay++;
-            check(sameDay==2,"Further updates on same day do not duplicate stones");
-            // The real rest() path advances eight hours; overnight rest must
-            // share the same resource renewal as normal real-time ticks.
-            repeated.hour=19.0f;
+            int atFour=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)atFour++;
+            check(atFour==54,"Original 04:00 refresh replenishes all 54 vacant stone source tiles");
+            // Collect three stones and check another morning does not duplicate inventory.
+            int spent=0;
+            for(int i=0;i<repeated.objects.length&&spent<3;i++)
+                if(repeated.objectAt(i)==3&&i!=(int)repeated.y*180+(int)repeated.x){
+                    repeated.objects[i]=0;spent++;
+                }
+            check(spent==3,"Stone source depletion can be simulated without moving the player");
+            repeated.hour=23.0f;
             int beforeRestDay=repeated.day;
             java.lang.reflect.Method rest=GameEngine.class.getDeclaredMethod("rest",int.class);
             rest.setAccessible(true);
             rest.invoke(repeated,0);
-            int afterRestStones=0;
-            for(int i=0;i<repeated.objects.length;i++)
-                if(repeated.objectAt(i)==3)afterRestStones++;
-            check(repeated.day==beforeRestDay+1&&afterRestStones==3,
-                  "Sleeping through midnight triggers stone regrowth exactly once");
+            int afterRest=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)afterRest++;
+            check(repeated.day==beforeRestDay+1&&afterRest==54,
+                  "Sleeping across 04:00 replenishes stones through the same clock logic");
+            // A second sleep stays within the new day; no early refresh is allowed.
+            int removed=-1;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3){
+                repeated.objects[i]=0;removed=i;break;
+            }
             rest.invoke(repeated,0);
-            int nextNightStones=0;
-            for(int i=0;i<repeated.objects.length;i++)
-                if(repeated.objectAt(i)==3)nextNightStones++;
-            check(repeated.day==beforeRestDay+1&&nextNightStones==3,
-                  "Second sleep on the same day must not duplicate stones");
+            check(removed>=0&&repeated.objects[removed]==0,
+                  "Same-day rest before next 04:00 does not refresh resource sites");
 
         } finally {
             saved.delete();
