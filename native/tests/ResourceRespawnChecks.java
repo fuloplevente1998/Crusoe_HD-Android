@@ -42,6 +42,14 @@ public final class ResourceRespawnChecks {
         byte[] snapshot=world.clone();
         check(ResourceRespawn.restoreNearestStone(new byte[32400],world,10.5f,10.5f,reachable)==-1
                 &&Arrays.equals(snapshot,world),"Never introduce invented spawn locations");
+        world[far]=0;
+        int morning=ResourceRespawn.restoreOriginalStones(original,world,10.5f,10.5f);
+        check(morning==1&&world[far]==4&&world[near]==0,
+              "04:00 refresh restores only empty original stone tiles and avoids player's cell");
+        check(world[occupied]==99&&world[other]==9,
+              "04:00 refresh never replaces crafted or story objects");
+        check(ResourceRespawn.restoreOriginalStones(original,world,10.5f,10.5f)==0,
+              "Repeated 04:00 refresh is idempotent with no inventory duplication");
         boolean thrown=false;
         try{ResourceRespawn.containsStone(new byte[9]);}catch(IllegalArgumentException expected){thrown=true;}
         check(thrown,"Reject malformed world maps instead of corrupting saves");
