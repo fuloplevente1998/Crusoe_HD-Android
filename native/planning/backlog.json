@@ -258,8 +258,8 @@
       "id": "N12",
       "priority": "P0",
       "title": "A gyűjthető tárgyak eredeti újratermelődése; kőhiány miatti softlock",
-      "status": "hiányzik; játékosi jelentés szerint minden kő elfogyott, a folytatás blokkolt",
-      "current": "Az eredeti játékban újratermelődtek a pályán lévő gyűjthető dolgok. A natív 0.6.0 GameEngine.interact() objects[index]=0 értékre állítja a felszedett tárgyat, a nap/óra léptetése nem regenerál, a mentés pedig tartósan megőrzi a kimerített objects[] tömböt. A kő tárgyazonosítója 3, kókuszminijátékban is fogyóeszköz. Az eredeti időköz még nem ismert.",
+      "status": "P0 ideiglenes megoldás PR #17 alatt; teljes motor/Android teszt és eredeti időzítés hiányzik",
+      "current": "Az eredeti játékban újratermelődtek a pályán lévő gyűjthető dolgok. A natív 0.6.0 GameEngine.interact() objects[index]=0 értékre állítja a felszedett tárgyat, a nap/óra léptetése nem regenerál, a mentés pedig tartósan megőrzi a kimerített objects[] tömböt. A kő tárgyazonosítója 3, kókuszminijátékban is fogyóeszköz. Az eredeti időköz még nem ismert. Draft PR #17: lokálisan elérhető eredeti lelőhelyek alapján mentésmentő respawn + átmeneti új napos utánpótlás; kiadásként nem igazolt.",
       "work": [
         "Az eredeti JAR / játékos megfigyelése alapján feltárni, pontosan mely természetes erőforrások, mely helyeken és milyen időzítéssel térnek vissza; a becslést nem nevezni eredeti szabálynak.",
         "Elsődlegesen a kő (ID 3) készletének helyreállítását implementálni; történeti, egyszer használatos, épített és tárolt objektumok ne regenerálódjanak automatikusan.",
@@ -280,7 +280,8 @@
       ],
       "issue_number": 16,
       "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16",
-      "issue_state_at_snapshot": "open"
+      "issue_state_at_snapshot": "open",
+      "implementation_pr": "https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17"
     },
     {
       "id": "N11",
