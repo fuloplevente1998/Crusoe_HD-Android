@@ -50,7 +50,7 @@ A mentési fejléc, `sourceHash`, CRC, teljes `objects[]` mező, receptállapot 
 - Játékfüggetlen egységteszt (az eredeti JAR nélkül): `bash native/scripts/test_respawn.sh` (natív könyvtárból: `bash scripts/test_respawn.sh`).
 - Privát világadatot használó motorregresszió: `bash native/scripts/test_engine.sh` a korábbi saját `world.pack`-kel. Tartalmazza a 0 köves v1 mentés és az elzárt térképrésszel kapcsolatos teszteket.
 - A kezdőterületről a mostani bejárhatósági modell szerint az 54 eredeti kőlelőhelyből **5 közvetlenül megközelíthető** akkor, ha az összes korábbi követ felszedtük. Helyi térképaudit: `(13,136)`, `(23,147)`, `(33,139)`, `(38,153)`, `(35,164)` (0-tól számozott mezők).
-- A korábbi kőmodul ellenőrzése **16/16** sikeres volt. Az új verzió további teszteket tartalmaz az összes erőforrás-kategóriára, állatok, egyedi tárgyak, építmények és 04:00-s frissítési határhelyzetek kezelésére; az új teljes build eredményét külön ellenőrizni kell.
+- A friss, kifejezett 36-kódos engedélyezési listával **61/61** erőforrás-egységteszt, **321** teljes motorfeltétel és az Android `testDebugUnitTest assembleDebug` sikeres: [Actions #39147036018](https://github.com/fuloplevente1998/Crusoe_HD-Android/actions/runs/39147036018). A tesztek között szerepel a többször előforduló egyedi felszerelés tiltott újratermelődése is. Fizikai telefonos mentésteszt továbbra is szükséges.
 - Fizikai telefonon még ellenőrzendő: régi mentés feloldása; 04:00-s utánpótlás; 00:00-nál korai visszaállás hiánya; tábori pihenéssel átlépett 04:00; crafting; kókuszminijáték; automatikus mentés; kilépés-visszatérés.
 
 ## Kiadási korlát
