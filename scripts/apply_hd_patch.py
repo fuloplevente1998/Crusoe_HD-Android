@@ -18,6 +18,7 @@ paths = {
     "Graphics.java": base / "Graphics.java",
     "Canvas.java": base / "Canvas.java",
     "CanvasWrapper.java": base / "graphics/CanvasWrapper.java",
+    "GameCanvas.java": base / "game/GameCanvas.java",
 }
 hd_java = base / "CrusoeHD.java"
 if hd_java.exists():
@@ -41,7 +42,7 @@ replace_once("Image.java",
 replace_once("Image.java",
     "\tpublic Bitmap getBitmap() {\n",
     """\t/** Backing pixels are larger than the emulated logical viewport. */
-\tstatic Image createCrusoeRenderTarget(int logicalWidth, int logicalHeight, int argb) {
+\tpublic static Image createCrusoeRenderTarget(int logicalWidth, int logicalHeight, int argb) {
 \t\t// Guard against oversized user-defined virtual screen dimensions.
 \t\tint scale = CrusoeHD.isEnabled() && (long) logicalWidth * logicalHeight <= 360L * 640L\n\t\t\t\t? CrusoeHD.SCALE : 1;
 \t\tBitmap backing = Bitmap.createBitmap(logicalWidth * scale, logicalHeight * scale,
@@ -78,11 +79,11 @@ replace_once("Image.java",
 
 replace_once("Image.java",
     "\t\tdst.getSingleGraphics().getCanvas().drawBitmap(bitmap, bounds, bounds, null);",
-    """\t\tRect src = crusoeScale == 1 ? bounds : new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+    """\t\tRect src = getCrusoeNativeBounds();
 \t\tdst.getSingleGraphics().getCanvas().drawBitmap(bitmap, src, bounds, null);""")
 replace_once("Image.java",
     "\t\tdst.getSingleGraphics().getCanvas().drawBitmap(bitmap, bounds, r, null);",
-    """\t\tRect src = crusoeScale == 1 ? bounds : new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+    """\t\tRect src = getCrusoeNativeBounds();
 \t\tdst.getSingleGraphics().getCanvas().drawBitmap(bitmap, src, r, null);""")
 replace_once("Image.java",
     "\tvoid setSize(int width, int height) {\n",
@@ -152,6 +153,28 @@ region = region[:p] + "dstR.set(hdLeft, 0, hdLeft + hdWidth, height);" + region[
 
 sources["Graphics.java"] = s[:start] + region + s[end:]
 
+replace_once("Graphics.java",
+    "\t\tcanvas.drawBitmap(image.getBitmap(), lx, ly, null);",
+    """\t\tif (image.getCrusoeScale() == 1) {
+\t\t\tcanvas.drawBitmap(image.getBitmap(), lx, ly, null);
+\t\t} else {
+\t\t\trectF.set(lx, ly, lx + image.getWidth(), ly + image.getHeight());
+\t\t\tcanvas.drawBitmap(image.getBitmap(), image.getCrusoeNativeBounds(), rectF, null);
+\t\t}""")
+replace_once("Graphics.java",
+    "\t\trect.set(x, y, x + width, y + height);\n\t\tcanvas.drawBitmap(image.getBitmap(), rect, rect, null);",
+    """\t\trect.set(x, y, x + width, y + height);
+\t\tint scale = image.getCrusoeScale();
+\t\tandroid.graphics.Rect source = new android.graphics.Rect(
+\t\t\t\tx * scale, y * scale, (x + width) * scale, (y + height) * scale);
+\t\tcanvas.drawBitmap(image.getBitmap(), source, rect, null);""")
+
+# Crusoe extends GameCanvas, whose own drawing surface must retain HD pixels
+# before flushGraphics copies it to Canvas's presentation buffers.
+replace_once("GameCanvas.java",
+    "\t\timage = Image.createImage(width, maxHeight);",
+    "\t\timage = Image.createCrusoeRenderTarget(width, maxHeight, android.graphics.Color.WHITE);")
+
 replace_once("Canvas.java",
     "\t\t\t\toffscreen = Image.createImage(width, maxHeight, 0);\n\t\t\t\toffscreenCopy = Image.createImage(width, maxHeight, 0);",
     """\t\t\t\toffscreen = Image.createCrusoeRenderTarget(width, maxHeight, 0);
@@ -160,6 +183,9 @@ replace_once("Canvas.java",
     "\t\t\tfloat th = (float) height / offscreen.getBitmap().getHeight();\n\t\t\tfloat tw = (float) width / offscreen.getBitmap().getWidth();",
     """\t\t\tfloat th = (float) (height * offscreen.getCrusoeScale()) / offscreen.getBitmap().getHeight();
 \t\t\tfloat tw = (float) (width * offscreen.getCrusoeScale()) / offscreen.getBitmap().getWidth();""")
+replace_once("Canvas.java",
+    "\t\t\t\t\t\t\toffscreenCopy.getWidth(), offscreenCopy.getHeight());",
+    "\t\t\t\t\t\t\toffscreenCopy.getCrusoeNativeBounds().width(), offscreenCopy.getCrusoeNativeBounds().height());")
 replace_once("CanvasWrapper.java",
     "\t\tcanvas.drawBitmap(bitmap, image.getBounds(), dst, imgPaint);",
     "\t\tcanvas.drawBitmap(bitmap, image.getCrusoeNativeBounds(), dst, imgPaint);")
@@ -169,5 +195,5 @@ for name, path in paths.items():
     path.write_text(sources[name], encoding="utf-8")
 hd_java.write_text((project / "renderer/CrusoeHD.java").read_text(encoding="utf-8"),
                   encoding="utf-8")
-print("Applied experimental HD renderer to five open-source runtime files.")
+print("Applied experimental HD renderer to six open-source runtime files.")
 print("No game JAR/JAD or proprietary assets were copied.")

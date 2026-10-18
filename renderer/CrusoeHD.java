@@ -3,6 +3,7 @@ package javax.microedition.lcdui;
 import android.graphics.Bitmap;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import javax.microedition.shell.AppClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,6 +19,7 @@ final class CrusoeHD {
     static final int SCALE = 4; // first-pass experimental 4x framebuffer
     private static final Map<String, Bitmap> CACHE = new HashMap<>();
     private static final Set<String> MISSING = new HashSet<>();
+    private static WeakReference<AppClassLoader> cacheOwner = new WeakReference<>(null);
     private CrusoeHD() {}
 
     /** Only allocate high resolution frames if this MIDlet owns both distinctive files. */
@@ -45,6 +47,14 @@ final class CrusoeHD {
         String key = keyFor(sx, sy, sw, sh);
         if (key == null) return null;
         synchronized (CACHE) {
+            // A missing override in the previous imported game must not suppress
+            // the same frame after importing another resource package.
+            AppClassLoader owner = AppClassLoader.getInstance();
+            if (cacheOwner.get() != owner) {
+                CACHE.clear();
+                MISSING.clear();
+                cacheOwner = new WeakReference<>(owner);
+            }
             Bitmap hit = CACHE.get(key);
             if (hit != null) return hit;
             if (MISSING.contains(key)) return null;
