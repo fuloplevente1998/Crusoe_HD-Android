@@ -258,8 +258,8 @@
       "id": "N12",
       "priority": "P0",
       "title": "A gyűjthető tárgyak eredeti újratermelődése; kőhiány miatti softlock",
-      "status": "P0 ideiglenes megoldás PR #17 alatt; teljes motor/Android teszt és eredeti időzítés hiányzik",
-      "current": "Az eredeti játékban újratermelődtek a pályán lévő gyűjthető dolgok. A natív 0.6.0 GameEngine.interact() objects[index]=0 értékre állítja a felszedett tárgyat, a nap/óra léptetése nem regenerál, a mentés pedig tartósan megőrzi a kimerített objects[] tömböt. A kő tárgyazonosítója 3, kókuszminijátékban is fogyóeszköz. Az eredeti időköz még nem ismert. Draft PR #17: lokálisan elérhető eredeti lelőhelyek alapján mentésmentő respawn + átmeneti új napos utánpótlás; kiadásként nem igazolt.",
+      "status": "04:00-s eredeti kő-regeneráció kódja PR #17 alatt; 16/16 kőmodul-teszt kész, natív APK és régi mentéses eszközteszt hátra",
+      "current": "Az eredeti játékban újratermelődtek a pályán lévő gyűjthető dolgok. A natív 0.6.0 GameEngine.interact() objects[index]=0 értékre állítja a felszedett tárgyat, a nap/óra léptetése nem regenerál, a mentés pedig tartósan megőrzi a kimerített objects[] tömböt. A kő tárgyazonosítója 3, kókuszminijátékban is fogyóeszköz. Az eredeti időköz még nem ismert. Draft PR #17: lokálisan elérhető eredeti lelőhelyek alapján mentésmentő respawn + átmeneti új napos utánpótlás; kiadásként nem igazolt. Eredeti JAR vizsgálat: data.ad.s 04:00-kor BIGislandObjects betöltést hajt végre; a data.y.a szűrő kódjai között a kő térképkódja 4 nem szerepel. A kőlelőhelyek frissítése 04:00-ra módosítva.",
       "work": [
         "Az eredeti JAR / játékos megfigyelése alapján feltárni, pontosan mely természetes erőforrások, mely helyeken és milyen időzítéssel térnek vissza; a becslést nem nevezni eredeti szabálynak.",
         "Elsődlegesen a kő (ID 3) készletének helyreállítását implementálni; történeti, egyszer használatos, épített és tárolt objektumok ne regenerálódjanak automatikusan.",
