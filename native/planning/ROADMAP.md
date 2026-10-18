@@ -38,11 +38,11 @@ Helyi ellenőrzési alap: **13 Android/Skia felületi teszt és 307 motorfeltét
 ## Javasolt haladási sorrend
 
 1. **N12 (P0, softlock):** a természetes gyűjthető tárgyak eredeti újratermelődési feltételeinek feltárása, különösen a kő (ID 3) pótlása és az elfogyott köveket tartalmazó régi mentések megmentése; az N10 mentési tervével egyeztetve.
-6. **N01 és N10:** az eredeti kötelező útvonal feltárása, mentésbővítési/migrációs terv.
-2. **N02 és N04:** árapály/területnyitás, pontos túlélés és vesztési állapotok.
-3. **N05, N03, N07, N06:** tábor/felszerelés, speciális tárgyhasználat/hajózás/befejezés, minijátékok és állatok összekapcsolása.
-4. **N08 és N09:** véglegesebb grafika/animáció, teljes magyarítás és visszajelzés, folyamatos telefonos próbákkal.
-5. **N11:** igazolt teljes végigjátszás, frissítési próba és mért telefonos eredmények.
+2. **N01 és N10:** az eredeti kötelező útvonal feltárása, mentésbővítési/migrációs terv.
+3. **N02 és N04:** árapály/területnyitás, pontos túlélés és vesztési állapotok.
+4. **N05, N03, N07, N06:** tábor/felszerelés, speciális tárgyhasználat/hajózás/befejezés, minijátékok és állatok összekapcsolása.
+5. **N08 és N09:** véglegesebb grafika/animáció, teljes magyarítás és visszajelzés, folyamatos telefonos próbákkal.
+6. **N11:** igazolt teljes végigjátszás, frissítési próba és mért telefonos eredmények.
 
 A sorrend a feltárás eredménye alapján módosítható; a részletes függőségek a táblázatban és az issue-kban szerepelnek.
 
