@@ -23,6 +23,22 @@ public final class ResourceRespawn {
         return false;
     }
 
+    /** Is a stone currently adjacent to a player-reachable walking cell? */
+    public static boolean hasApproachableStone(byte[] currentObjects, boolean[] reachable) {
+        checkMap(currentObjects);
+        checkReachability(reachable);
+        for (int i = 0; i < MAP_TILES; i++) {
+            if ((currentObjects[i] & 255) != STONE_MAP_VALUE) continue;
+            int x = i % MAP_WIDTH, y = i / MAP_WIDTH;
+            if ((x > 0 && reachable[i - 1])
+                    || (x + 1 < MAP_WIDTH && reachable[i + 1])
+                    || (y > 0 && reachable[i - MAP_WIDTH])
+                    || (y + 1 < MAP_WIDTH && reachable[i + MAP_WIDTH]))
+                return true;
+        }
+        return false;
+    }
+
     /**
      * Restore at most one natural stone on an empty original stone location.
      *
@@ -36,8 +52,7 @@ public final class ResourceRespawn {
                                            float playerX, float playerY, boolean[] reachable) {
         checkMap(originalObjects);
         checkMap(currentObjects);
-        if (reachable == null || reachable.length != MAP_TILES)
-            throw new IllegalArgumentException("Expected reachability map");
+        checkReachability(reachable);
         int playerTileX = (int) playerX;
         int playerTileY = (int) playerY;
         int best = -1;
@@ -57,6 +72,11 @@ public final class ResourceRespawn {
         }
         if (best >= 0) currentObjects[best] = (byte) STONE_MAP_VALUE;
         return best;
+    }
+
+    private static void checkReachability(boolean[] reachable) {
+        if (reachable == null || reachable.length != MAP_TILES)
+            throw new IllegalArgumentException("Expected reachability map");
     }
 
     private static void checkMap(byte[] map) {
