@@ -136,6 +136,53 @@ public final class EngineChecks {
         for(int shot=0;shot<10;shot++){game.action();game.action();while(game.flying&&!game.finished)game.update(.1f);}
         check(game.finished&&!game.won&&game.attempts==10,"Coconut game stops after ten misses and ignores duplicate fire taps");
     }
+    static void stoneRespawnChecks()throws Exception {
+        GameEngine depleted=new GameEngine(data);
+        byte[] original=data.layers[GameData.OBJECTS];
+        int initial=0;
+        for(int i=0;i<depleted.objects.length;i++){
+            if((original[i]&255)==4){initial++;depleted.objects[i]=0;}
+        }
+        check(initial==54,"Original world has exactly 54 stone source sites");
+        depleted.inventory[3]=0;
+        depleted.day=3;depleted.hour=12.5f;
+        int[] originalInventory=depleted.inventory.clone();
+        float x=depleted.x,y=depleted.y;
+        File saved=Files.createTempFile("crusoe-exhausted-stones-",".dat").toFile();
+        try {
+            depleted.save(saved); // Existing v1 save layout, no migration/destruction.
+            GameEngine recovered=new GameEngine(data);
+            recovered.load(saved);
+            int stones=0,source=-1;
+            for(int i=0;i<recovered.objects.length;i++)if(recovered.objectAt(i)==3){stones++;source=i;}
+            check(stones==1&&source>=0&&(original[source]&255)==4,
+                  "Legacy depleted save restores exactly one original stone source");
+            check(Arrays.equals(originalInventory,recovered.inventory)&&recovered.x==x&&recovered.y==y
+                      &&recovered.day==3&&recovered.hour==12.5f,
+                  "Rescue preserves inventory, player coordinates, game day and time");
+            check(recovered.notice.contains("kő"),"Recovery informs the player about restored stone");
+            recovered.save(saved);
+            GameEngine repeated=new GameEngine(data);
+            repeated.load(saved);
+            int afterReload=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)afterReload++;
+            check(afterReload==1,"Second load does not duplicate a restored stone");
+            repeated.hour=23.999f;
+            int beforeDay=repeated.day;
+            repeated.update(0.1f,0,0);
+            int afterDayCount=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)afterDayCount++;
+            check(repeated.day==beforeDay+1&&afterDayCount==2,
+                  "New game day renews one original stone location");
+            repeated.update(0.1f,0,0);
+            int sameDay=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)sameDay++;
+            check(sameDay==2,"Further updates on same day do not duplicate stones");
+        } finally {
+            saved.delete();
+        }
+    }
+
     public static void main(String[] args)throws Exception {
         data=new GameData(new FileInputStream(args[0]));
         check(data.items.length==120&&data.recipes.length==45,"Complete original item and recipe catalog");
@@ -188,6 +235,6 @@ public final class EngineChecks {
         int near=reachable(e,8);e.navigate(near%180,near/180);int pending=e.route.size();
         e.update(0,0,0);check(e.energy==energy,"Zero-time frame cannot advance survival state");
         check(pending>0&&e.route.size()==pending,"First zero-time display frame preserves the requested path");
-        file.delete();harvestChecks();joystickAndCoconuts();System.out.println("Engine checks passed: "+passed);
+        file.delete();stoneRespawnChecks();harvestChecks();joystickAndCoconuts();System.out.println("Engine checks passed: "+passed);
     }
 }
