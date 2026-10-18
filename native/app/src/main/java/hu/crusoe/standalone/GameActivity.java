@@ -98,17 +98,18 @@ public final class GameActivity extends Activity {
         content.addView(label("Eszköz használata",20,Color.rgb(239,211,158)));
         AlertDialog dialog=sheet("Művelet",content);
         collect.setOnClickListener(v->{String result=engine.interact();engine.say(result);message(result);dialog.dismiss();save();});
-        for(int tool:new int[]{14,83,81}){
-            String need=engine.harvestRequirement(tool,animal);
-            Button use=new Button(this);use.setText(data.items[tool].name);use.setEnabled(need.isEmpty());content.addView(use);
+        for(int tool:new int[]{14,83,81,HarvestGame.COCONUT}){
+            final int targetTile=tool==HarvestGame.COCONUT?engine.nearestPalm():animal;
+            String need=engine.harvestRequirement(tool,targetTile);
+            Button use=new Button(this);use.setText(tool==HarvestGame.COCONUT?"Kókusz leverése · kő":data.items[tool].name);use.setEnabled(need.isEmpty());content.addView(use);
             if(!need.isEmpty())content.addView(label(need,14,Color.LTGRAY));
-            else content.addView(label(tool==14?"1 giliszta · húzd a horgot a halra, engedd el, majd húzd a felszínre.":tool==83?"1 burgonya · 10 hal, legfeljebb 5 merítés.":"1 nyílcsomag · 10 lövés. A lefelé tartó nyíllal célozz.",14,Color.LTGRAY));
-            use.setOnClickListener(v->{String error=engine.startHarvest(tool,animal,System.nanoTime());
+            else content.addView(label(tool==14?"1 giliszta · mozgasd a horgot az érintőkarral, akaszd meg a halat, majd húzd fel.":tool==83?"1 burgonya · 10 hal, legfeljebb 5 merítés.":tool==HarvestGame.COCONUT?"1 kő · 10 dobásból 5 kókusz. Két találat kell egy kókuszhoz.":"1 nyílcsomag · 10 lövés. Érintőkar: szög és erő.",14,Color.LTGRAY));
+            use.setOnClickListener(v->{String error=engine.startHarvest(tool,targetTile,System.nanoTime());
                 if(!error.isEmpty()){message(error);return;}
                 dialog.dismiss();gameView.screen=GameView.HARVEST;gameView.lastFrame=0;gameView.resetInput();save();gameView.invalidate();
             });
         }
-        content.addView(label("A csalit vagy nyílcsomagot az induláskor használod el. Kilépéskor a minijáték megszakad.",14,Color.LTGRAY));
+        content.addView(label("A csalit, követ vagy nyílcsomagot az induláskor használod el. Kilépéskor a minijáték megszakad.",14,Color.LTGRAY));
     }
     public void crafting(){showCrafting(false);}
     private AlertDialog currentCraft;

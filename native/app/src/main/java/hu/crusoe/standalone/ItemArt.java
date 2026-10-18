@@ -38,6 +38,7 @@ public final class ItemArt {
             Bitmap atlas=atlases[sheet];int cell=CELL[id];
             source.set(cell%4*atlas.getWidth()/4,cell/4*atlas.getHeight()/4,(cell%4+1)*atlas.getWidth()/4,(cell/4+1)*atlas.getHeight()/4);
             if(sheet==0&&id==16)source.top+=source.height()/7; // Exclude a neighboring atlas cell's leaf tips.
+            if(sheet==1&&cell==2)source.bottom-=source.height()/9; // Keep the next row's goat horns out of the yellow-fish sprite.
             target.set(x-width/2,bottom-height,x+width/2,bottom);paint.setColor(Color.WHITE);paint.setShader(null);paint.setStyle(Paint.Style.FILL);
             canvas.drawBitmap(atlas,source,target,paint);
         }else{

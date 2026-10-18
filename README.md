@@ -1,18 +1,17 @@
 # Crusoe – saját motoros Android-fejlesztés
 
-Ez az ág a saját Android/Canvas-motoros játék **0.5.0-s alpha-változatát** tartalmazza. Az eredeti öt térképréteg, 120 tárgybejegyzés és 45 recept mellett érintéses mozgás, mentés, horgászat, hálózás és íjas vadászat működik. A teljes történeti port még nem készült el.
+**0.6.0-s alpha:** saját Android/Canvas-motor, natív felületek. Az eredeti öt térképréteg, 120 tárgy és 45 recept mellett mozgás, mentés, halászat, vadászat és kókuszdobálás működik. A teljes történeti port még fejlesztés alatt áll.
 
-Új: közös tárgyazonos ikonok a pályán, a natív tarisznyában és a recepteknél. Külön kagyló-, gyümölcs-, gomba- és szerszámgrafikák, képes készítési kártyák és hozzávalólisták. Az eredeti kezdőhely pontosítása és a kés melletti láda helyes megjelenítése; opcionális út a késhez a naplóból.
+Új: folyamatos érintőkaros célzás és horogmozgatás, külön akciógombbal és kétujjas használattal. Az oldalirány a szöget, a fel/le irány az erőt változtatja; az elengedett kar megtartja a beállítást. A kókuszos játékban két találat kell egy kókuszhoz, tíz dobásból legalább ötöt kell leverni. [Irányítás képekkel](native/docs/CONTROLS.md).
 
-Helyben ellenőrizve: 280 motorfeltétel, 11 Android/Skia felületi teszt, öt bájtpontos térképréteg és aláírt APK. A 0.3.1-es natív mentés betölthető. Fizikai telefonos teljesítménymérés még nincs. A korábbi emulátoros kísérlet PR #2-ben külön marad.
+Helyben ellenőrizve: 13 Android/Skia felületi teszt és 307 motorfeltétel, a 0.3.1-es és 0.5.0-s motorral készült helyi mentések visszatöltésével. A két régi mentési fájl helyi tesztbemenet. Az öt pályaréteg változatlan, az APK aláírója megegyezik a korábbi natív alpha aláírójával. Fizikai telefonos teljesítménymérés még nincs.
 
-Részletek és helyi fordítás: [native/README.md](native/README.md). [Tárgygrafikák és korlátok](native/planning/ITEM_GRAPHICS.md), [minijátékok egyezései és eltérései](native/planning/MINIGAMES.md).
+## Letöltés és projektanyagok
 
-## Letöltés és grafikák
-
-- [0.5.0 natív Android-tesztkiadás](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.5.0-alpha)
-- [Generált grafikák](native/app/src/main/assets/art)
-- [Képes előnézetek](native/docs/ARTWORK.md)
+- [0.6.0 natív Android-tesztkiadás](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.6.0-alpha)
+- [Natív forrás és helyi fordítás](native/README.md)
+- [Generált grafikák](native/app/src/main/assets/art) és [előnézetek](native/docs/ARTWORK.md)
+- [Minijátékok eredetihez viszonyított eltérései](native/planning/MINIGAMES.md)
 
 ## Development rules
 

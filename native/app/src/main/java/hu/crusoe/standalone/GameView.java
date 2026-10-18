@@ -93,7 +93,7 @@ public final class GameView extends View {
         text(c,"Egy sziget. Egy esély a túlélésre.",44,h*.49f+236,23,WHITE);
         float first=h-243;box(c,40,first,680,first+78,17,GOLD);centered(c,"ÚJ KALAND",360,first+49,25,INK);
         box(c,40,first+94,680,first+166,17,0x884b756c);centered(c,"FOLYTATÁS",360,first+139,24,activity.hasSave()?WHITE:0xff83978e);
-        centered(c,"Fejlesztői változat · 0.5",360,h-27,18,0xffa6beb3);
+        centered(c,"Fejlesztői változat · 0.6",360,h-27,18,0xffa6beb3);
     }
     private void drawWorld(Canvas c){
         GameEngine e=activity.engine;
@@ -175,7 +175,8 @@ public final class GameView extends View {
         String[] labels={"ÉLET","ÉLELEM","VÍZ","ERŐ"};float[] values={e.health,e.food,e.water,e.energy};int[] colors={0xffdd8c75,0xffd9b76b,0xff70c6d1,0xff9ab988};
         for(int i=0;i<4;i++){float x=36+i*168;text(c,labels[i],x,117,14,0xffced9ca);box(c,x,129,x+145,138,4,0xff2d5049);box(c,x,129,x+145*values[i]/100f,138,4,colors[i]);}
         int target=e.selected>=0&&e.objects[e.selected]!=0?e.selected:e.nearest();
-        if(target>=0){String name=activity.data.items[e.objectAt(target)].name;box(c,194,h-295,694,h-246,12,0xd9102e2e);centered(c,name,444,h-263,20,WHITE);}
+        if(e.coconutPalm(e.selected))target=e.selected;
+        if(target>=0){String name=e.coconutPalm(target)?"Kókuszpálma":activity.data.items[e.objectAt(target)].name;box(c,194,h-295,694,h-246,12,0xd9102e2e);centered(c,name,444,h-263,20,WHITE);}
         if(e.notice!=null&&!e.notice.isEmpty()){
             box(c,22,178,698,253,13,0xc9102e2e);wrapped(c,e.notice,38,205,644,22,WHITE,2);
         }
@@ -213,33 +214,51 @@ public final class GameView extends View {
         HarvestGame g=shownHarvest;
         if(g==null){screen=WORLD;lastFrame=0;return;}
         long now=System.nanoTime();float dt=lastFrame==0?0:Math.min(.1f,(now-lastFrame)/1e9f);lastFrame=now;
-        if(!activity.paused)g.update(dt);
-        if(g.finished&&harvestResult==null){harvestResult=activity.engine.finishHarvest();activity.engine.say(harvestResult);activity.save();}
-        boolean bow=g.tool==HarvestGame.BOW;
-        c.drawColor(INK);text(c,bow?"VADÁSZAT":g.tool==14?"HORGÁSZAT":"HALÁSZAT HÁLÓVAL",30,60,28,GOLD);
+        if(!activity.paused){g.steer(joyX,joyY,dt);g.update(dt);}
+        if(g.finished&&harvestResult==null){resetInput();harvestResult=activity.engine.finishHarvest();activity.engine.say(harvestResult);activity.save();}
+        boolean coconut=g.tool==HarvestGame.COCONUT,ballistic=g.isBallistic(),net=g.tool==HarvestGame.NET;
+        c.drawColor(INK);text(c,coconut?"KÓKUSZDOBÁLÁS":ballistic?"VADÁSZAT":net?"HALÁSZAT HÁLÓVAL":"HORGÁSZAT",30,60,28,GOLD);
         text(c,"VISSZA",588,60,20,WHITE);
-        wrapped(c,bow?"A lefelé tartó nyíllal találd el az állatot. 10 lövésed van.":g.tool==14?"Húzd a horgot a halra, majd engedd el. Kapás után húzd a felszínre!":"Bökj a Merítés gombra. Fogj 10 halat legfeljebb 5 merítéssel!",30,106,655,22,WHITE,3);
-        harvestTop=205;harvestScale=Math.min(1,(logicalHeight-455)/640);
-        c.save();c.translate(0,harvestTop);c.scale(1,harvestScale);
-        p.setShader(new LinearGradient(0,0,0,640,bow?0xff94b878:0xff56c5cc,bow?0xff234c39:0xff113f6b,Shader.TileMode.CLAMP));c.drawRect(20,0,700,640,p);p.setShader(null);
-        if(bow){
-            for(int i=0;i<5;i++)sprite(c,objects,0,70+i*150,310,180,260);
+        String help=coconut?"Érintőkar: szög és erő. Két találat / kókusz. Cél: 5 kókusz, legfeljebb 10 dobás.":ballistic?"Érintőkar: szög és erő. A lefelé tartó nyíllal találd el az állatot. 10 lövésed van.":net?"Bökj a Merítés gombra. Fogj 10 halat legfeljebb 5 merítéssel!":"Érintőkar: horogmozgatás. A halnál nyomd meg a Megakasztás gombot, majd húzd fel a felszínre.";
+        wrapped(c,help,30,106,655,22,WHITE,3);
+        harvestTop=205;harvestScale=Math.max(320,Math.min(1040,logicalHeight-480))/640f;
+        c.save();c.translate(0,harvestTop);c.scale(1,harvestScale);c.clipRect(20,0,700,640);
+        p.setShader(new LinearGradient(0,0,0,640,ballistic?0xff94b878:0xff56c5cc,ballistic?0xff234c39:0xff113f6b,Shader.TileMode.CLAMP));c.drawRect(20,0,700,640,p);p.setShader(null);
+        if(ballistic){
+            for(int i=0;i<(coconut?3:5);i++)sprite(c,objects,0,coconut?260+i*180:70+i*150,coconut?625:310,coconut?260:180,coconut?540:260);
             box(c,20,584,700,640,0,0xff786441);
-            sprite(c,fauna,Math.max(0,faunaFor(g.targetItem)),g.animalX,g.animalY+35,135,120);
-            p.setColor(GOLD);p.setStrokeWidth(5);p.setStyle(Paint.Style.STROKE);c.drawArc(28,520,89,630,-70,140,false,p);c.drawLine(64,526,64,624,p);p.setStyle(Paint.Style.FILL);
+            if(!g.flying&&!g.finished){
+                float reach=130+g.power*4;
+                p.setColor(0x30edc37e);dest.set(54-reach,580-reach,54+reach,580+reach);c.drawArc(dest,-g.angle-12,24,true,p);
+                double angle=Math.toRadians(g.angle);float speed=330+g.power*5;
+                p.setColor(0x99f6efd9);
+                for(float t=.12f;t<.9f;t+=.12f)c.drawCircle(54+(float)Math.cos(angle)*speed*t,580-(float)Math.sin(angle)*speed*t+300*t*t,3,p);
+            }
+            if(coconut){
+                for(int i=0;i<6;i++){
+                    float x=g.coconutX[i]+(g.coconutHits[i]==1?(float)Math.sin(g.elapsed*24)*3:0),y=g.coconutY[i]+g.coconutFall[i];
+                    itemArt.draw(c,1,x,y+25,50,50);
+                    if(g.coconutHits[i]==1){p.setColor(GOLD);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3);c.drawCircle(x,y,27,p);p.setStyle(Paint.Style.FILL);centered(c,"1/2",x,y-34,17,WHITE);}
+                }
+            }else itemArt.draw(c,g.targetItem,g.animalX,g.animalY+35,135,120);
+            sprite(c,robinson,8,54,625,106,106);
+            if(!coconut){p.setColor(GOLD);p.setStrokeWidth(4);p.setStyle(Paint.Style.STROKE);c.drawArc(52,542,92,613,-70,140,false,p);c.drawLine(76,547,76,607,p);p.setStyle(Paint.Style.FILL);}
             float ax=g.flying?g.arrowX:54,ay=g.flying?g.arrowY:580;
-            float vx=g.flying?g.arrowVX:(float)Math.cos(Math.toRadians(g.angle))*60,vy=g.flying?g.arrowVY:-(float)Math.sin(Math.toRadians(g.angle))*60;
-            float length=(float)Math.hypot(vx,vy);vx=vx/length*30;vy=vy/length*30;
-            p.setColor(WHITE);p.setStrokeWidth(4);c.drawLine(ax-vx,ay-vy,ax+vx,ay+vy,p);c.drawCircle(ax+vx,ay+vy,5,p);
+            if(coconut){p.setColor(0xffb5b4a4);c.drawCircle(ax,ay,8,p);p.setColor(0xffe2d7ba);c.drawCircle(ax-2,ay-2,3,p);}
+            else{
+                float vx=g.flying?g.arrowVX:(float)Math.cos(Math.toRadians(g.angle))*60,vy=g.flying?g.arrowVY:-(float)Math.sin(Math.toRadians(g.angle))*60;
+                float length=(float)Math.hypot(vx,vy);vx=vx/length*25;vy=vy/length*25;
+                p.setColor(WHITE);p.setStrokeWidth(3);c.drawLine(ax-vx,ay-vy,ax+vx,ay+vy,p);c.drawCircle(ax+vx,ay+vy,4,p);
+            }
         }else{
             p.setColor(0x447ce7dc);for(int i=0;i<9;i++)c.drawCircle(65+i*73,70+(i*83)%520,7,p);
-            int count=g.tool==83?7:1;
+            int count=net?7:1;
             for(int i=0;i<count;i++)if(!g.caught[i]){
                 float fx=g.hooked?g.hookX:g.fishX[i],fy=g.hooked?g.hookY:g.fishY[i];
-                sprite(c,fauna,g.tool==83?(i%2==0?4:5):faunaFor(g.reward),fx,fy+31,100,76);
+                itemArt.draw(c,net?(i%2==0?2:59):g.reward,fx,fy+31,100,76);
             }
             p.setColor(WHITE);p.setStrokeWidth(3);
-            if(g.tool==14){
+            if(!net){
                 c.drawLine(360,0,g.hookX,g.hookY,p);p.setStyle(Paint.Style.STROKE);c.drawArc(g.hookX-8,g.hookY-4,g.hookX+8,g.hookY+17,0,210,false,p);p.setStyle(Paint.Style.FILL);
                 text(c,g.hooked?"KAPÁS! HÚZD FEL!":"FELSZÍN",35,43,22,GOLD);
             }else{
@@ -249,14 +268,20 @@ public final class GameView extends View {
             }
         }
         c.restore();
-        float controls=logicalHeight-190;
-        if(bow){
-            centered(c,"SZÖG: "+(int)g.angle+"°     ERŐ: "+(int)g.power+"%     LÖVÉS: "+g.attempts+"/10",360,controls-35,20,WHITE);
-            String[] buttons={"SZÖG −","SZÖG +","ERŐ −","ERŐ +"};
-            for(int i=0;i<4;i++){box(c,24+i*174,controls-10,186+i*174,controls+46,10,0xff33544b);centered(c,buttons[i],105+i*174,controls+25,19,WHITE);}
-        }else centered(c,g.tool==83?g.total+" / 10 hal     "+g.attempts+" / 5 merítés":"A fogáshoz a halon engedd el az ujjad.",360,controls+18,21,WHITE);
-        box(c,30,logicalHeight-106,690,logicalHeight-28,18,GOLD);
-        centered(c,g.finished?"VISSZA A SZIGETRE":bow?(g.flying?"A NYÍL REPÜL…":"LÖVÉS"):g.tool==83?(g.dropping?"MERÍTÉS…":"MERÍTÉS"):"HOROG MEGAKASZTÁSA",360,logicalHeight-56,23,INK);
+        String status=ballistic?"SZÖG "+(int)g.angle+"°   ERŐ "+(int)g.power+"%   "+g.attempts+"/10 "+(coconut?"dobás":"lövés"):net?g.total+" / 10 hal     "+g.attempts+" / 5 merítés":g.hooked?"Kapás! Mozgasd felfelé az érintőkart!":"Vezesd a horgot a halhoz.";
+        centered(c,status,360,logicalHeight-258,21,WHITE);
+        if(net){
+            box(c,30,logicalHeight-210,690,logicalHeight-122,18,GOLD);centered(c,g.finished?"VISSZA A SZIGETRE":g.dropping?"MERÍTÉS…":"MERÍTÉS",360,logicalHeight-157,25,INK);
+        }else{
+            float jx=128,jy=logicalHeight-153;
+            p.setColor(0xff274e47);c.drawCircle(jx,jy,76,p);p.setColor(0xff58776a);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2);c.drawCircle(jx,jy,58,p);c.drawLine(jx-60,jy,jx+60,jy,p);c.drawLine(jx,jy-60,jx,jy+60,p);p.setStyle(Paint.Style.FILL);
+            p.setColor(0xffe8d4a8);c.drawCircle(jx+joyX*34,jy+joyY*34,27,p);
+            box(c,300,logicalHeight-210,694,logicalHeight-122,20,GOLD);
+            String button=g.finished?"VISSZA A SZIGETRE":coconut?(g.flying?"A KŐ REPÜL…":"DOBÁS"):ballistic?(g.flying?"A NYÍL REPÜL…":"LÖVÉS"):g.hooked?"HÚZD FEL!":"MEGAKASZTÁS";
+            centered(c,button,497,logicalHeight-157,23,INK);
+            centered(c,ballistic?"↔ szög · ↕ erő":"↔ ↕ horog",128,logicalHeight-48,19,0xffb9cdbb);
+        }
+        centered(c,coconut?g.total+" / 5 kókusz · egy kókuszhoz két találat kell":net?"Egy burgonya egy teljes halászathoz.":ballistic?"Az érintőkar elengedése megtartja a célzást.":"A felszínhez húzott hal a tarisznyába kerül.",420,logicalHeight-83,16,0xffb9cdbb);
         if(g.finished){box(c,35,harvestTop+160,685,harvestTop+340,20,0xf2102e2e);centered(c,g.won?"SIKERES FOGÁS":"PRÓBÁLD ÚJRA",360,harvestTop+210,28,GOLD);wrapped(c,harvestResult,65,harvestTop+259,590,23,WHITE,3);}
     }
     public void closeHarvest(){
@@ -269,17 +294,23 @@ public final class GameView extends View {
     private boolean harvestTouch(MotionEvent event,int action,int index,int pointer,float x,float y){
         if(activity.paused)return true;
         HarvestGame g=activity.engine.harvest!=null?activity.engine.harvest:shownHarvest;if(g==null)return true;
-        if(action==MotionEvent.ACTION_UP&&y<90&&x>570){closeHarvest();return true;}
-        if(g.finished){invalidate();if(action==MotionEvent.ACTION_UP&&y>=logicalHeight-106)closeHarvest();return true;}
+        boolean down=action==MotionEvent.ACTION_DOWN||action==MotionEvent.ACTION_POINTER_DOWN;
+        boolean up=action==MotionEvent.ACTION_UP||action==MotionEvent.ACTION_POINTER_UP;
+        boolean actionArea=y>=logicalHeight-210&&y<=logicalHeight-122&&(g.tool==HarvestGame.NET?x>=30&&x<=690:x>=300&&x<=694);
+        if(g.finished){resetInput();if(up&&(actionArea||y<90&&x>570))closeHarvest();return true;}
         float gy=(y-harvestTop)/harvestScale;
-        if(g.tool==14){
-            if(action==MotionEvent.ACTION_DOWN&&gy>=0&&gy<=640){hookPointer=pointer;g.moveHook(x,gy);}
-            else if(action==MotionEvent.ACTION_MOVE){int i=event.findPointerIndex(hookPointer);if(i>=0)g.moveHook((event.getX(i)-getPaddingLeft())/scale,((event.getY(i)-getPaddingTop())/scale-harvestTop)/harvestScale);}
-            else if(action==MotionEvent.ACTION_UP&&pointer==hookPointer){hookPointer=-1;g.action();}
-            else if(action==MotionEvent.ACTION_UP&&y>=logicalHeight-106)g.action();
-        }else if(action==MotionEvent.ACTION_UP){
-            if(y>=logicalHeight-106)g.action();
-            else if(g.tool==81&&y>=logicalHeight-200&&y<=logicalHeight-144){int button=Math.min(3,Math.max(0,(int)((x-24)/174)));g.aim(g.angle+(button==0?-5:button==1?5:0),g.power+(button==2?-5:button==3?5:0));}
+        if(down){
+            if(g.tool!=HarvestGame.NET&&Math.hypot(x-128,y-(logicalHeight-153))<=98&&joyPointer<0){
+                joyPointer=pointer;joyOriginX=128;joyOriginY=logicalHeight-153;updateJoystick(x,y);
+            }else if((actionArea||y<90&&x>570)&&tapPointer<0){tapPointer=pointer;tapStartX=x;tapStartY=y;}
+            else if(g.tool==HarvestGame.ROD&&gy>=0&&gy<=640&&x>=20&&x<=700&&hookPointer<0){hookPointer=pointer;g.moveHook(x,gy);}
+        }else if(action==MotionEvent.ACTION_MOVE){
+            int j=event.findPointerIndex(joyPointer);if(j>=0)updateJoystick((event.getX(j)-getPaddingLeft())/scale,(event.getY(j)-getPaddingTop())/scale);
+            int h=event.findPointerIndex(hookPointer);if(h>=0)g.moveHook((event.getX(h)-getPaddingLeft())/scale,((event.getY(h)-getPaddingTop())/scale-harvestTop)/harvestScale);
+        }else if(up){
+            if(pointer==joyPointer){joyPointer=-1;joyX=joyY=0;}
+            else if(pointer==hookPointer){hookPointer=-1;g.action();}
+            else if(pointer==tapPointer){tapPointer=-1;if(Math.hypot(x-tapStartX,y-tapStartY)<45){if(y<90&&x>570)closeHarvest();else if(actionArea)g.action();}}
         }
         invalidate();return true;
     }
@@ -321,7 +352,7 @@ public final class GameView extends View {
         if(y<260)return;
         float ox=360-cameraX,oy=h*.49f-cameraY;int tx=(int)Math.floor((x-ox)/TILE),ty=(int)Math.floor((y-oy)/TILE);
         if(tx<0||tx>=180||ty<0||ty>=180)return;
-        int tile=ty*180+tx;e.selected=e.objects[tile]!=0?tile:-1;e.navigate(tx,ty);
+        int tile=ty*180+tx;e.selected=e.objects[tile]!=0||e.coconutPalm(tile)?tile:-1;e.navigate(tx,ty);
     }
     @Override public boolean performClick(){super.performClick();return true;}
 }

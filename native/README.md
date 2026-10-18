@@ -1,6 +1,6 @@
 # Crusoe – saját motoros Android-játék
 
-**0.5.0-native-alpha:** önálló Android-alkalmazás saját játéklogikával és Canvas-alapú rajzolással. Közvetlenül a játék főmenüje indul, nincs Java ME-kompatibilitás, emulátor, JAR-import, WebView vagy távoli tartalom. Android 8.0+ szükséges.
+**0.6.0-native-alpha:** önálló Android-alkalmazás saját játéklogikával és Canvas-alapú rajzolással. Közvetlenül a játék főmenüje indul, nincs Java ME-kompatibilitás, emulátor, JAR-import, WebView vagy távoli tartalom. Android 8.0+ szükséges.
 
 Ez egy bővülő játszható alap, **nem a teljes eredeti játék elkészült portja**. A korábbi emulátoros APK külön fejlesztési kísérlet volt.
 
@@ -19,15 +19,20 @@ Ez egy bővülő játszható alap, **nem a teljes eredeti játék elkészült po
 - Egységes tárgyikonok a pályán és a natív menükben; külön kagyló-, gyümölcs-, gomba- és szerszámrajzok. Képes tarisznya, receptkártyák és ikonos hozzávalólista meglévő/szükséges mennyiségekkel.
 - Az eredeti kezdőhely pontosítása és a kés/láda megjelenítése; a naplóban opcionális útkeresés a késhez. Részletek: [ITEM_GRAPHICS.md](planning/ITEM_GRAPHICS.md).
 
+- Érintőkaros vadászat/horgászat és új kókuszdobáló minijáték, szög-/erőállítással, külön akciógombbal és kétujjas irányítással. Két találat/kókusz, öt kókusz/tíz dobás; első találat visszaállása 11 másodperc után. [Irányítás képekkel](docs/CONTROLS.md).
+- A 0.3.1-es és a 0.5.0-s motorral készült helyi mentések betöltését is ellenőriztük.
+
 ## Ellenőrizve
 
-A teljes Android APK lefordult JDK 21 / Gradle 9.6.0 / AGP 9.4.1 / SDK 36 környezetben. Tizenegy Android/Skia felületi teszt átment: saját indítóképernyő és érintéses játékindítás, két portréfelbontás és térképrajzolás, érintőkaros mozgás, folytatás mentésből, a tarisznya/készítés/napló megnyitása és a szünet feloldása, valamint térképes út kijelölése és a mozgás elindulása a visszatérés után.
+A teljes Android APK lefordult JDK 21 / Gradle 9.6.0 / AGP 9.4.1 / SDK 36 környezetben. Tizenhárom Android/Skia felületi teszt átment: saját indítóképernyő és érintéses játékindítás, két portréfelbontás és térképrajzolás, érintőkaros mozgás, folytatás mentésből, a tarisznya/készítés/napló megnyitása és a szünet feloldása, valamint térképes út kijelölése és a mozgás elindulása a visszatérés után.
 
-A külön motorvizsgálat 280 feltételt ellenőriz. Ebben szerepel az eredeti kezdőparti késhez vezető út, valódi tárgyfelvétel és fejszekészítés az eredeti pályáról gyűjtött anyagokkal, mind a 45 recept külön vizsgálata, eszközmegőrzés, hibás készítés atomikussága és sérült mentés elutasítása. Ez 280 ellenőrzési feltétel, nem 280 külön végigjátszás.
+A külön motorvizsgálat 307 feltételt ellenőriz. Ebben szerepel az eredeti kezdőparti késhez vezető út, valódi tárgyfelvétel és fejszekészítés az eredeti pályáról gyűjtött anyagokkal, mind a 45 recept külön vizsgálata, eszközmegőrzés, hibás készítés atomikussága és sérült mentés elutasítása. Ez 307 ellenőrzési feltétel, nem 307 külön végigjátszás.
 
 A minijátékok két felületi tesztje a műveletmenüből induló teljes horgászati érintéssort és a jutalom mentését, továbbá a háló/vadászat rajzolását, vezérlését és megszakítását ellenőrzi. A motorfeltételek a minijátékok követelményeit, fogásait és egyszeri készletmódosításait, illetve egy tényleges régi mentést is ellenőriznek.
 
 Három további felületi teszt az eredeti kezdőhelyet, az eredeti láda melletti késhez vezető naplóbeli útkeresést és késfelvételt, 24 korábban összekeverhető tárgy tényleges képkülönbségét, valamint a natív ikonos tarisznyát és a recept részleteiből végzett készítést vizsgálja.
+
+A 0.6.0 két további felületi vizsgálata kétujjas célzás/lövés, megszakított érintés, háttérből visszatérés, valamint érintőkaros horogmozgatás/megakasztás/felhúzás és mentés ellenőrzését adja. A 307 motorfeltétel a két helyi régi mentési bemenettel együtt értendő; új környezetben ezek a külön helyi bemenetek nélkül kimaradnak.
 
 A DEX-vizsgálat igazolja a saját `GameActivity` jelenlétét, a Java ME- és J2ME Loader-osztályok hiányát. Az APK nem tartalmaz JAR/JAD fájlt, hálózati vagy tárhelyengedélyt nem kér. Az aláírás ellenőrzése sikeres.
 
@@ -47,7 +52,7 @@ Fizikai telefonos teszt még nincs. A Skia-tesztek nem bizonyítanak telefonon m
 
 ## Helyi fordítás
 
-A generált grafikák a repóban, az `app/src/main/assets/art/` mappában találhatók. Az előnézeti képek a [docs/previews](docs/previews) mappában érhetők el. Az APK a [0.5.0-s tesztkiadásból](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.5.0-alpha) tölthető le. A forráság továbbra sem tartalmazza az eredeti JAR/JAD-ot, a közvetlenül kinyert nyers adatokat vagy a helyi világcsomagot. Az eredeti JAR-ból csak adatokat olvasunk ki; a játék eredeti végrehajtható osztályai nem kerülnek a natív programba.
+A generált grafikák a repóban, az `app/src/main/assets/art/` mappában találhatók. Az előnézeti képek a [docs/previews](docs/previews) mappában érhetők el. Az APK a [0.6.0-s tesztkiadásból](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.6.0-alpha) tölthető le. A forráság továbbra sem tartalmazza az eredeti JAR/JAD-ot, a közvetlenül kinyert nyers adatokat vagy a helyi világcsomagot. Az eredeti JAR-ból csak adatokat olvasunk ki; a játék eredeti végrehajtható osztályai nem kerülnek a natív programba.
 
 ```sh
 python3 scripts/extract_original.py /private/original.jar --out private/extracted

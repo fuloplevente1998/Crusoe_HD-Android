@@ -83,11 +83,58 @@ public final class EngineChecks {
         g=new HarvestGame(81,target,4,9);g.aim(85,10);
         for(int n=0;n<10;n++){g.action();g.action();while(g.flying&&!g.finished)g.update(.1f);}
         check(g.finished&&!g.won&&g.attempts==10,"Hunting stops after ten misses without duplicate-tap shots");
-        File legacy=new File("artifacts/baseline-031/island-v1.save");
-        if(legacy.isFile()){
-            GameEngine restored=new GameEngine(data);restored.load(legacy);
-            check(restored.inventory[76]==1&&restored.inventory[8]==7&&restored.health==73&&restored.food==62&&restored.water==51&&restored.energy==40&&restored.day==9&&restored.hour==14.5f&&restored.seen.get(3)&&restored.findObject(76)<0,"Actual 0.3.1 engine save loads with inventory, world, stats and journal intact");
+        for(String version:new String[]{"031","050"}){
+            File legacy=new File("artifacts/baseline-"+version+"/island-v1.save");
+            if(legacy.isFile()){
+                GameEngine restored=new GameEngine(data);restored.load(legacy);
+                check(restored.inventory[76]==1&&restored.inventory[8]==7&&restored.health==73&&restored.food==62&&restored.water==51&&restored.energy==40&&restored.day==9&&restored.hour==14.5f&&restored.seen.get(3)&&restored.findObject(76)<0,"Actual "+version+" engine save loads with inventory, world, stats and journal intact");
+            }
         }
+    }
+    static void aimAtCoconut(HarvestGame game,int index){
+        double dx=game.coconutX[index]-54,height=580-game.coconutY[index];
+        for(float angle=50;angle<=85;angle+=.5f){
+            double radians=Math.toRadians(angle),denominator=Math.cos(radians)*Math.cos(radians)*(dx*Math.tan(radians)-height);
+            if(denominator<=0)continue;
+            double speed=Math.sqrt(300*dx*dx/denominator),power=(speed-330)/5;
+            if(power>=40&&power<=100){game.aim(angle,(float)power);return;}
+        }throw new AssertionError("No legal coconut trajectory");
+    }
+    static void throwAt(HarvestGame game,int coconut){
+        aimAtCoconut(game,coconut);game.action();int limit=200;
+        while(game.flying&&!game.finished&&limit-->0)game.update(.05f);
+        check(limit>0,"Coconut projectile completes a legal flight");
+    }
+    static void joystickAndCoconuts()throws Exception {
+        HarvestGame bow=new HarvestGame(81,0,4,7);float angle=bow.angle,power=bow.power;
+        bow.steer(1,-1,.1f);check(bow.angle>angle&&bow.power>power,"Diagonal stick input changes both angle and power continuously");
+        angle=bow.angle;power=bow.power;bow.steer(0,0,.1f);bow.steer(Float.NaN,1,.1f);
+        check(bow.angle==angle&&bow.power==power,"Released stick retains aim and invalid input cannot corrupt it");
+        bow.aim(-999,-999);check(bow.angle==10&&bow.power==40,"Original-style aim clamps angle and minimum power");
+        bow.aim(999,999);check(bow.angle==85&&bow.power==100,"Aim cannot exceed maximum angle or power");
+        bow.action();bow.steer(-1,1,.1f);check(bow.angle==85&&bow.power==100,"In-flight shot keeps its launch aim");
+        HarvestGame rod=new HarvestGame(14,-1,-1,7);float hx=rod.hookX,hy=rod.hookY;
+        rod.steer(1,1,.1f);check(rod.hookX>hx&&rod.hookY>hy,"Fishing stick moves the hook on both axes");
+        GameEngine e=new GameEngine(data);int palm=e.nearestPalm();check(palm>=0&&e.coconutPalm(palm),"Original coconut-palm decoration is reachable from the starting beach");
+        check(!e.startHarvest(3,palm,7).isEmpty()&&e.harvest==null,"Coconut game cannot start without a stone");
+        e.inventory[3]=2;check(!e.startHarvest(3,-1,7).isEmpty()&&e.inventory[3]==2,"Invalid palm does not consume a stone");
+        check(e.startHarvest(3,palm,7).isEmpty()&&e.inventory[3]==1,"Starting coconut game reserves one stone once");
+        check(!e.startHarvest(3,palm,7).isEmpty()&&e.inventory[3]==1,"Repeated start cannot consume a second stone");
+        HarvestGame game=e.harvest;throwAt(game,0);
+        check(game.coconutHits[0]==1&&game.total==0,"A first real hit shakes a coconut without awarding it");
+        throwAt(game,0);check(game.coconutHits[0]==2&&game.total>=1,"Two separate stone hits dislodge a coconut");
+        check(e.inventory[1]==0&&!game.won,"One dislodged coconut does not meet the five-coconut goal");
+        for(int index=1;index<5&&!game.finished;index++)while(game.coconutHits[index]<2&&!game.finished)throwAt(game,index);
+        for(int t=0;t<50&&!game.finished;t++)game.update(.1f);
+        check(game.won&&game.total>=5&&game.attempts<=10,"Ten legal throws can dislodge five coconuts and win");
+        e.finishHarvest();check(e.inventory[1]==1&&e.inventory[3]==1&&e.coconutPalm(palm),"Coconut win grants the original single reward and preserves the palm");
+        e.finishHarvest();check(e.inventory[1]==1,"Coconut result cannot award twice");
+        game=new HarvestGame(3,palm,1,7);throwAt(game,0);
+        for(int t=0;t<130;t++)game.update(.1f);
+        check(game.coconutHits[0]==0,"Unconfirmed first hit resets after the original eleven-second interval");
+        game=new HarvestGame(3,palm,1,7);game.aim(85,40);
+        for(int shot=0;shot<10;shot++){game.action();game.action();while(game.flying&&!game.finished)game.update(.1f);}
+        check(game.finished&&!game.won&&game.attempts==10,"Coconut game stops after ten misses and ignores duplicate fire taps");
     }
     public static void main(String[] args)throws Exception {
         data=new GameData(new FileInputStream(args[0]));
@@ -141,6 +188,6 @@ public final class EngineChecks {
         int near=reachable(e,8);e.navigate(near%180,near/180);int pending=e.route.size();
         e.update(0,0,0);check(e.energy==energy,"Zero-time frame cannot advance survival state");
         check(pending>0&&e.route.size()==pending,"First zero-time display frame preserves the requested path");
-        file.delete();harvestChecks();System.out.println("Engine checks passed: "+passed);
+        file.delete();harvestChecks();joystickAndCoconuts();System.out.println("Engine checks passed: "+passed);
     }
 }

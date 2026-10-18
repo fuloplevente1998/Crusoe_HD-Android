@@ -4,12 +4,15 @@ import java.util.Random;
 
 /** Independent touch-game simulation. Coordinates are 720 x 640 logical units. */
 public final class HarvestGame {
-    public static final int ROD=14, NET=83, BOW=81;
+    public static final int COCONUT=3, ROD=14, NET=83, BOW=81;
     public final int tool,targetTile,targetItem,reward;
     public final float[] fishX=new float[7],fishY=new float[7],fishSpeed=new float[7];
     public final boolean[] caught=new boolean[7];
     public float hookX=360,hookY=70,netY=-40,animalX=460,animalY=370;
-    public float arrowX=54,arrowY=580,arrowVX,arrowVY,angle=55,power=65,elapsed;
+    public float arrowX=54,arrowY=580,arrowVX,arrowVY,angle=70,power=40,elapsed;
+    public final float[] coconutX=new float[6],coconutY=new float[6],coconutFall=new float[6],coconutAge=new float[6];
+    public final int[] coconutHits=new int[6];
+    private final boolean[] hitThisShot=new boolean[6];
     public int attempts,total;
     public boolean hooked,dropping,flying,finished,won;
     private final Random random;
@@ -17,8 +20,18 @@ public final class HarvestGame {
 
     public HarvestGame(int tool,int tile,int item,long seed){
         this.tool=tool;targetTile=tile;targetItem=item;random=new Random(seed);
-        reward=tool==ROD?species[random.nextInt(4)]:tool==NET?new int[]{59,60,2}[random.nextInt(3)]:item;
+        reward=tool==ROD?species[random.nextInt(4)]:tool==NET?new int[]{59,60,2}[random.nextInt(3)]:tool==COCONUT?1:item;
         resetFish();
+        for(int i=0;i<6;i++){coconutX[i]=240+i*70+random.nextFloat()*12-6;coconutY[i]=180+(i%2)*45+random.nextFloat()*24;}
+    }
+    public boolean isBallistic(){return tool==BOW||tool==COCONUT;}
+    /** Continuous original-style directional input; releasing the stick retains the aim. */
+    public void steer(float horizontal,float vertical,float delta){
+        if(finished||!Float.isFinite(horizontal)||!Float.isFinite(vertical)||!Float.isFinite(delta)||delta<=0)return;
+        float length=(float)Math.hypot(horizontal,vertical);if(length<.12f)return;
+        float norm=Math.max(1,length),dt=Math.min(.1f,delta);horizontal/=norm;vertical/=norm;
+        if(isBallistic())aim(angle+horizontal*50*dt,power-vertical*36*dt);
+        else if(tool==ROD)moveHook(hookX+horizontal*250*dt,hookY+vertical*250*dt);
     }
     private void resetFish(){
         for(int i=0;i<7;i++){
@@ -40,15 +53,17 @@ public final class HarvestGame {
             else finished=true;
         }else if(tool==NET){
             if(dropping)return;attempts++;netY=-40;dropping=true;
-        }else if(tool==BOW&&!flying){
+        }else if(isBallistic()&&!flying&&attempts<10&&!(tool==COCONUT&&total>=5)){
             attempts++;flying=true;arrowX=54;arrowY=580;
+            java.util.Arrays.fill(hitThisShot,false);
             double radians=Math.toRadians(angle);float speed=330+power*5;
             arrowVX=(float)Math.cos(radians)*speed;arrowVY=-(float)Math.sin(radians)*speed;
         }
     }
     public void aim(float degrees,float strength){
         if(!Float.isFinite(degrees)||!Float.isFinite(strength)||flying)return;
-        angle=Math.max(10,Math.min(85,degrees));power=Math.max(10,Math.min(100,strength));
+        if(finished)return;
+        angle=Math.max(10,Math.min(85,degrees));power=Math.max(40,Math.min(100,strength));
     }
     public void update(float delta){
         if(finished||!Float.isFinite(delta)||delta<=0)return;
@@ -57,12 +72,18 @@ public final class HarvestGame {
     }
     private void step(float dt){
         elapsed+=dt;
-        if(tool==BOW){
-            animalX=460+(float)Math.sin(elapsed*.7)*95;
+        if(isBallistic()){
+            if(tool==BOW)animalX=460+(float)Math.sin(elapsed*.7)*95;
+            else updateCoconuts(dt);
             if(flying){
                 arrowVY+=600*dt;arrowX+=arrowVX*dt;arrowY+=arrowVY*dt;
-                if(arrowVY>0&&Math.abs(arrowX-animalX)<42&&Math.abs(arrowY-animalY)<35){finished=won=true;}
-                else if(arrowY>640||arrowX>760){flying=false;if(attempts>=10)finished=true;}
+                if(tool==BOW&&arrowVY>0&&Math.abs(arrowX-animalX)<42&&Math.abs(arrowY-animalY)<35){finished=won=true;}
+                else if(tool==COCONUT)for(int i=0;i<6;i++){
+                    if(coconutHits[i]<2&&!hitThisShot[i]&&Math.hypot(arrowX-coconutX[i],arrowY-coconutY[i])<23){
+                        hitThisShot[i]=true;coconutAge[i]=0;if(++coconutHits[i]==2)total++;
+                    }
+                }
+                if(arrowY>640||arrowX>760){flying=false;if(attempts>=10&&!(tool==COCONUT&&total>=5))finished=true;}
             }
             return;
         }
@@ -80,5 +101,13 @@ public final class HarvestGame {
                 if(total>=10){finished=won=true;}else if(attempts>=5)finished=true;else resetFish();
             }
         }
+    }
+    private void updateCoconuts(float dt){
+        boolean falling=false;
+        for(int i=0;i<6;i++){
+            if(coconutHits[i]==1){coconutAge[i]+=dt;if(coconutAge[i]>11){coconutHits[i]=0;coconutAge[i]=0;}}
+            if(coconutHits[i]==2){coconutFall[i]=Math.min(580-coconutY[i],coconutFall[i]+230*dt);if(coconutY[i]+coconutFall[i]<580)falling=true;}
+        }
+        if(total>=5&&!falling){finished=won=true;}
     }
 }

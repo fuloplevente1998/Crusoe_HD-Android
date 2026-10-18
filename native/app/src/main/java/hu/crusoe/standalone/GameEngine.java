@@ -185,13 +185,26 @@ public final class GameEngine {
             if(xx>=0&&yy>=0&&xx<180&&yy<180&&data.tile(0,xx,yy)==terrain)return true;
         }return false;
     }
+    public boolean coconutPalm(int tile){return tile>=0&&tile<objects.length&&(data.layers[GameData.DECOR][tile]&255)==18;}
+    public int nearestPalm(){
+        if(coconutPalm(selected))return selected;
+        int best=-1;double distance=1.81;
+        for(int yy=Math.max(0,(int)y-2);yy<=Math.min(179,(int)y+2);yy++)for(int xx=Math.max(0,(int)x-2);xx<=Math.min(179,(int)x+2);xx++){
+            int tile=yy*180+xx;if(!coconutPalm(tile))continue;
+            double d=Math.hypot(xx+.5-x,yy+.5-y);if(d<distance){distance=d;best=tile;}
+        }return best;
+    }
+    private int harvestConsumable(int tool){return tool==14?90:tool==83?26:tool==81?45:3;}
     public String harvestRequirement(int tool,int target){
         if(harvest!=null)return "Már folyamatban van egy művelet.";
-        if(tool!=14&&tool!=83&&tool!=81)return "Ez nem halászati vagy vadászati eszköz.";
+        if(tool!=14&&tool!=83&&tool!=81&&tool!=HarvestGame.COCONUT)return "Ez nem használható ebben a minijátékban.";
         if(inventory[tool]<=0)return "Szükséges eszköz: "+data.items[tool].name;
-        int bait=tool==14?90:tool==83?26:45;
+        int bait=harvestConsumable(tool);
         if(inventory[bait]<=0)return "Szükséges: "+data.items[bait].name;
-        if(tool==81){
+        if(tool==HarvestGame.COCONUT){
+            if(!coconutPalm(target))return "Állj egy kókuszpálma mellé, vagy válaszd ki a pályán.";
+            if(!near(target,1.8f))return "Menj közelebb a kókuszpálmához.";
+        }else if(tool==81){
             if(target<0||target>=objects.length||objectAt(target)<0||data.items[objectAt(target)].attributes[2]!=81)return "Válassz egy vadászható állatot.";
             if(!near(target,1.8f))return "Menj közelebb az állathoz.";
         }else if(!nearWater(tool==83?4:5))return tool==83?"A hálót sekély víz (világos part) mellett használd.":"A botot mélyebb víz (türkiz tenger) mellett használd.";
@@ -199,8 +212,8 @@ public final class GameEngine {
     }
     public String startHarvest(int tool,int target,long seed){
         String missing=harvestRequirement(tool,target);if(!missing.isEmpty())return missing;
-        int item=tool==81?objectAt(target):-1;
-        inventory[tool==14?90:tool==83?26:45]--; // Reserve once, also on cancellation/restart.
+        int item=tool==81?objectAt(target):tool==HarvestGame.COCONUT?1:-1;
+        inventory[harvestConsumable(tool)]--; // Reserve once, also on cancellation/restart.
         stop();harvest=new HarvestGame(tool,target,item,seed);return "";
     }
     public String finishHarvest(){
@@ -218,9 +231,9 @@ public final class GameEngine {
             health=clamp(health-damage);
             if(damage>0)return "Nem sikerült a vadászat. Az állat megsebesített: −"+damage+" élet.";
         }
-        return game.tool==83?"Most "+game.total+" hal került a hálóba; a cél 10. Próbáld újra.":"Ezúttal nem sikerült. Próbáld újra.";
+        return game.tool==83?"Most "+game.total+" hal került a hálóba; a cél 10. Próbáld újra.":game.tool==HarvestGame.COCONUT?"Most "+game.total+" kókuszt vertél le; a cél 5. Egy kókuszhoz két találat kell.":"Ezúttal nem sikerült. Próbáld újra.";
     }
-    public void cancelHarvest(){harvest=null;stop();say("A művelet megszakadt. Az elhasznált csali vagy nyílcsomag nem jár vissza.");}
+    public void cancelHarvest(){harvest=null;stop();say("A művelet megszakadt. Az elhasznált csali, kő vagy nyílcsomag nem jár vissza.");}
     public void save(File file)throws IOException {
         ByteArrayOutputStream bytes=new ByteArrayOutputStream();DataOutputStream out=new DataOutputStream(bytes);
         out.writeInt(0x43535631);out.writeUTF(data.sourceHash);out.writeFloat(x);out.writeFloat(y);out.writeFloat(hour);
