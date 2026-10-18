@@ -43,13 +43,40 @@ public final class ResourceRespawnChecks {
         check(ResourceRespawn.restoreNearestStone(new byte[32400],world,10.5f,10.5f,reachable)==-1
                 &&Arrays.equals(snapshot,world),"Never introduce invented spawn locations");
         world[far]=0;
-        int morning=ResourceRespawn.restoreOriginalStones(original,world,10.5f,10.5f);
+        int morning=ResourceRespawn.restoreOriginalResources(original,world,10.5f,10.5f);
         check(morning==1&&world[far]==4&&world[near]==0,
               "04:00 refresh restores only empty original stone tiles and avoids player's cell");
         check(world[occupied]==99&&world[other]==9,
               "04:00 refresh never replaces crafted or story objects");
-        check(ResourceRespawn.restoreOriginalStones(original,world,10.5f,10.5f)==0,
+        check(ResourceRespawn.restoreOriginalResources(original,world,10.5f,10.5f)==0,
               "Repeated 04:00 refresh is idempotent with no inventory duplication");
+        // Multiple original resources refresh; one-off, animal and placeholder
+        // entries do not, even when the map is reloaded at 04:00.
+        byte[] full=new byte[32400],current=new byte[32400];
+        full[cell(1,1)]=9;full[cell(2,1)]=9; // two branch sources
+        full[cell(3,1)]=7;full[cell(4,1)]=7; // vine
+        full[cell(5,1)]=29;full[cell(6,1)]=29; // berries
+        full[cell(7,1)]=91;full[cell(8,1)]=91; // earthworms
+        full[cell(9,1)]=65;full[cell(10,1)]=65; // shells
+        full[cell(11,1)]=77; // unique knife
+        full[cell(12,1)]=5;full[cell(13,1)]=5; // dynamic animals
+        full[cell(14,1)]=96;full[cell(15,1)]=96; // placeholders
+        current[cell(2,1)]=99; // built item occupies one original branch tile
+        int regrown=ResourceRespawn.restoreOriginalResources(full,current,80.5f,80.5f);
+        check(regrown==9,"04:00 restores branches, vines, berries, worms and shells");
+        check(current[cell(2,1)]==99&&current[cell(11,1)]==0,
+              "Structures and unique inventory/story pickups remain untouched");
+        check(current[cell(12,1)]==0&&current[cell(13,1)]==0
+                &&current[cell(14,1)]==0,
+              "The original animal filter and native placeholder exception remain intact");
+        check(ResourceRespawn.restoreOriginalResources(full,current,80.5f,80.5f)==0,
+              "Full natural-resource refresh cannot duplicate surviving items");
+        current[cell(4,1)]=0;
+        check(ResourceRespawn.restoreOriginalResources(full,current,4.5f,1.5f)==0,
+              "Never spawn directly beneath the player");
+        check(ResourceRespawn.restoreOriginalResources(full,current,80.5f,80.5f)==1
+                &&current[cell(4,1)]==7,
+              "Missed vine reappears on the next safe 04:00 refresh");
         boolean thrown=false;
         try{ResourceRespawn.containsStone(new byte[9]);}catch(IllegalArgumentException expected){thrown=true;}
         check(thrown,"Reject malformed world maps instead of corrupting saves");
