@@ -39,14 +39,20 @@ A tereprétegek adatai pontosak, de a dekorációk és tárgyak grafikai hozzár
 
 Fizikai telefonos teszt még nincs. A Skia-tesztek nem bizonyítanak telefonon mért 60 FPS-t vagy alacsony RAM-használatot. Android 8-on a textúra-kompozit kompatibilitása miatt szoftveres rajzolási visszaesés lép életbe; Android 9+-on GPU-s Canvas az alapértelmezés.
 
+## Grafikák és előnézetek
+
+![Tarisznya](docs/previews/backpack.png)
+
+[Tárgyikonok](docs/previews/item-icons.png) · [Recept részletei](docs/previews/recipe.png) · [Kés és láda](docs/previews/knife-crate.png). A grafikai bemenetek jegyzéke: [docs/ARTWORK.md](docs/ARTWORK.md).
+
 ## Helyi fordítás
 
-A nyilvános forrás nem tartalmazza az eredeti játékból kinyert adatokat, a helyi világcsomagot vagy az APK-t. A tesztképek és a generált grafikai alapok is helyi bemenetek. Az eredeti JAR-ból csak adatokat olvasunk ki; a játék eredeti végrehajtható osztályai nem kerülnek a natív programba.
+A generált grafikák a repóban, az `app/src/main/assets/art/` mappában találhatók. Az előnézeti képek a [docs/previews](docs/previews) mappában érhetők el. Az APK a [0.5.0-s tesztkiadásból](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.5.0-alpha) tölthető le. A forráság továbbra sem tartalmazza az eredeti JAR/JAD-ot, a közvetlenül kinyert nyers adatokat vagy a helyi világcsomagot. Az eredeti JAR-ból csak adatokat olvasunk ki; a játék eredeti végrehajtható osztályai nem kerülnek a natív programba.
 
 ```sh
 python3 scripts/extract_original.py /private/original.jar --out private/extracted
 python3 scripts/prepare_data.py private/extracted
-# Helyi grafika: app/src/main/assets/art/{objects,robinson,title,terrain,fauna,shore,gear,supplies}.png
+# A generált grafikák már a repó részei: app/src/main/assets/art/
 export JAVA_HOME=/path/to/jdk21
 export ANDROID_HOME=/path/to/android-sdk
 bash scripts/build_android.sh

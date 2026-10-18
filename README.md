@@ -8,6 +8,12 @@ Helyben ellenőrizve: 280 motorfeltétel, 11 Android/Skia felületi teszt, öt b
 
 Részletek és helyi fordítás: [native/README.md](native/README.md). [Tárgygrafikák és korlátok](native/planning/ITEM_GRAPHICS.md), [minijátékok egyezései és eltérései](native/planning/MINIGAMES.md).
 
+## Letöltés és grafikák
+
+- [0.5.0 natív Android-tesztkiadás](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.5.0-alpha)
+- [Generált grafikák](native/app/src/main/assets/art)
+- [Képes előnézetek](native/docs/ARTWORK.md)
+
 ## Development rules
 
 1. Preserve original gameplay rules when porting; explicitly document behavior that is still simplified or absent.
@@ -16,4 +22,4 @@ Részletek és helyi fordítás: [native/README.md](native/README.md). [Tárgygr
 4. Keep changes on feature branches, review them in draft PRs and test on Android before release.
 5. A passing build or synthetic rendering test does not establish full game compatibility or measured phone performance.
 
-This public source tree excludes the local world-data package, generated art inputs, test screenshots and APK. Data is prepared locally from the owner's supplied original file. The Java ME game is not executed by this implementation.
+The source branch excludes the original commercial JAR/JAD, directly extracted raw resources, local world-data package and signing keys. Generated project art and native UI previews are included. The native alpha APK is published separately on a download branch and linked from the prerelease. The Java ME game is not executed by this implementation.

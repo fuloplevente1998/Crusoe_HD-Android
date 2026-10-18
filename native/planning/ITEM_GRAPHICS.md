@@ -20,4 +20,4 @@ A felületek továbbra is Android View/ScrollView/AlertDialog elemek, WebView n�
 
 A grafika továbbra is fejlesztés alatt áll. Néhány állatfaj, építmény és növény közös rajzot használ; a dekorációk teljes eredeti alak- és mérethelyessége nincs igazolva. Az atlaszok és a Canvas-ikonok stílusa sem teljesen egységes. A napló eredeti bevezető szövegeinek egy része még angol. A térképrétegek pontossága nem jelenti a teljes történeti játékmenet kész állapotát.
 
-A kereskedelmi eredeti képei és visszafejtett forrása nem kerülnek a nyilvános projektbe. A generált atlaszok helyi bemenetek maradnak.
+A kereskedelmi eredeti képei és visszafejtett forrása nem kerülnek a nyilvános projektbe. A generált atlaszok a projekt `app/src/main/assets/art/` mappájában nyilvánosan elérhetők.
