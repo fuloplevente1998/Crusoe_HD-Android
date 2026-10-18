@@ -36,6 +36,12 @@ A 0.6.0 két további felületi vizsgálata kétujjas célzás/lövés, megszak�
 
 A DEX-vizsgálat igazolja a saját `GameActivity` jelenlétét, a Java ME- és J2ME Loader-osztályok hiányát. Az APK nem tartalmaz JAR/JAD fájlt, hálózati vagy tárhelyengedélyt nem kér. Az aláírás ellenőrzése sikeres.
 
+## Ismert P0 blokkoló: a kövek és természetes tárgyak nem termelődnek újra
+
+A 0.6.0-s natív alfában a felvehető erőforrás a felszedéskor kikerül a pályáról, de egyelőre **nem regenerálódik**. Felhasználói visszajelzés alapján már az összes kő elfogyott, ezért a játék továbbhaladása blokkolódott; az eredeti Java ME-játékban viszont a világ gyűjthető tárgyai újra megjelentek.
+
+**Az eredeti respawn-időzítés és jogosult tárgytípusok még feltárandók, javítás még nem készült.** A [P0 N12 / #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) feladat megköveteli a meglévő kőhiányos mentés helyreállítását új játék kezdése nélkül, a történeti és épített objektumok duplikálásának elkerülésével. Fejlesztési részletek: [ROADMAP.md](planning/ROADMAP.md).
+
 ## Még hiányzik
 
 A prioritásos, elfogadási feltételekkel rögzített teljes lista: [ROADMAP.md](planning/ROADMAP.md). Élő követés: [összesítő issue #4](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/4).
