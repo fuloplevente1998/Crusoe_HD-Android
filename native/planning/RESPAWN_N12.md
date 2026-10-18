@@ -9,6 +9,18 @@ Kapcsolódó hiba: [#16](https://github.com/fuloplevente1998/Crusoe_HD-Android/i
 - A jelenlegi natív motor a felszedett tárgyat `objects[index]=0` utasítással eltávolította, de nem pótolta.
 - Az eredeti Java ME-kódban a **04:00-s tárgytérkép-visszatöltés időpontja igazolt**: a `data.v.a()` által meghívott `data.ad.s()` akkor futtatja a `data.g.a("BIGislandObjects", ...)` visszatöltést, ha a `data/p.K` játékóra 4, és egy jelző megakadályozza az ismétlést ugyanabban az órában. A `data.v` a `K` órát 0–23 között lépteti. **A többi erőforrás és az egyszeri tárgyak eredeti szűrőrendszere még részben feltárandó**; csak a követ állítjuk vissza automatikusan.
 
+### Eredeti játék – ellenőrzött időzítés és szűrés
+
+Az eredeti JAR obfuszkált osztályaiban az alábbi kapcsolódás azonosítható:
+
+- `data.v.a()` → `data.ad.s()`: az ellenőrzés futás közben ismétlődik.
+- `data.ad.s()`: ha az óra `data/p.K == 4` és az egyszeri belső jelző még nincs beállítva, meghívja a `data.g.a("BIGislandObjects", objectMap)` betöltést és az objektumok inicializálását. A jelző a 04:00-s órán kívül törlődik, így legközelebb ismét végrehajtódhat.
+- `data.v`: a játékóra 0–23 között lépked; a `K` a játékbeli óra, a `J` a perc.
+- `data.g.a(String, byte[])` közvetlenül a JAR-beli `/BIGislandObjects.byt` adatokat olvassa; bizonyos objektumkódokat a `data.y.a(int)` szűrővel nem enged újra megjelenni.
+- `data.y.a(int)` az `3, 5, 41–45, 47–50, 52–54, 56–60, 62–64` kódokra ad igazat. **A kő eredeti térképkódja 4, ezért nem esik a tiltott újratöltések közé.**
+
+**Következtetés:** a **kő teljes eredeti lelőhely-listájának 04:00-s visszatöltése bizonyított forráskódú viselkedés**. A natív port eltér az eredetitől annyiban, hogy más objektumok, már felépített tárgyak védelme érdekében most kizárólag a természetes kőlelőhelyeket frissíti. Az összes többi gyűjthető tárgy pontos újratöltését később az eredeti szűrőszabályok szerint kell átültetni.
+
 ## Bevezetett átmeneti szabály
 
 1. Játékállás betöltésekor, **ha a játékosnál nincs kő és a jelenlegi bejárható területéről egy kő sem megközelíthető**, helyreállít egy követ.
