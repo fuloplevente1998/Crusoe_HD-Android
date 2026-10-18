@@ -26,22 +26,24 @@ public final class ResourceRespawn {
     /**
      * Restore at most one natural stone on an empty original stone location.
      *
-     * The nearest currently empty original deposit is selected deterministically.
+     * The nearest reachable, empty original deposit is selected deterministically.
      * A tile with a crafted item, story object or any other object is preserved.
      * Never touch inventory or overwrite the tile under the player.
      *
      * @return restored tile index, or -1 if none was safely available
      */
     public static int restoreNearestStone(byte[] originalObjects, byte[] currentObjects,
-                                           float playerX, float playerY) {
+                                           float playerX, float playerY, boolean[] reachable) {
         checkMap(originalObjects);
         checkMap(currentObjects);
+        if (reachable == null || reachable.length != MAP_TILES)
+            throw new IllegalArgumentException("Expected reachability map");
         int playerTileX = (int) playerX;
         int playerTileY = (int) playerY;
         int best = -1;
         double distance = Double.POSITIVE_INFINITY;
         for (int i = 0; i < MAP_TILES; i++) {
-            if ((originalObjects[i] & 255) != STONE_MAP_VALUE || currentObjects[i] != 0)
+            if (!reachable[i] || (originalObjects[i] & 255) != STONE_MAP_VALUE || currentObjects[i] != 0)
                 continue;
             int sx = i % MAP_WIDTH, sy = i / MAP_WIDTH;
             if (sx == playerTileX && sy == playerTileY) continue;
