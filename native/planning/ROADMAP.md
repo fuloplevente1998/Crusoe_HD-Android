@@ -284,22 +284,22 @@ Előfeltételek: nincs másik részfeladat előfeltételként rögzítve.
 
 **P0 · [#16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) · Kiinduló állapot: hiányzik, a felhasználó jelenlegi mentésében már elfogyott az összes kő.**
 
-**Aktuális fejlesztés:** [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17): az eredeti Java ME-játékból igazolt 04:00-s tárgytérkép-frissítés kőre szűkített megvalósítása, a hozzáférhető kő nélküli régi mentések megmentése, 16/16 kőmodul-teszttel. A teljes APK-fordítás és telefonos próba még hátravan. [Részletes forrásvizsgálat és tesztek](RESPAWN_N12.md).
+**Aktuális fejlesztés:** [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17): eredeti JAR alapján igazolt **04:00-s** objektumtérkép-frissítés **36 rendszeresen gyűjthető erőforráskódra és 1 024 lelőhelyre**. A korábbi csak kőre vonatkozó megoldást minden természetes anyagra kiterjesztettük; az állatokat/egyszeri felszerelést/építményeket védjük. A kifogyott köves mentés mentése megmarad. **22/22 erőforrás-teszt**, **321 motorfeltétel**, Android CI sikeres. A felhasználó által kért **azonos aláírású, telefonra rátelepíthető** 0.6.1 buildet Codexben kell kiadni a már meglévő keystore-ral. [Forrás és tesztek](RESPAWN_N12.md) · [Codex átadás](CODEX_UPDATE_HANDOFF.md).
 
 **Felhasználói megfigyelés:** az eredeti Java ME-játékban a pályán lévő erőforrások idővel újra megjelentek. A 0.6.0 natív motorban az `interact()` egyszerűen `objects[index]=0` állapotra állítja a felszedett tárgyat, az `update()` csak a napot/órát lépteti, nem regenerál, a mentés pedig a kimerített `objects[]` tömböt tartósítja. A kő (ID **3**) fogyóeszköz a kókuszminijátékhoz is, ezért az elfogyása blokkolhatja a játékmenetet.
 
 Hátralévő munka:
 
-- Visszafejteni vagy eredeti játéktesztben megfigyelni a **valós respawn-szabályokat**: mely tárgyak, milyen időközzel, mely eredeti pozíciókon és milyen feltételekkel kerülnek vissza. A pontos időzítés **egyelőre nem ismert**; tilos kitalált fix „naponta visszanő minden” szabályt eredetinek nevezni.
-- A természetes gyűjthető objektumokat és a történeti/egyedi/épített tárgyakat külön kezelni. Utóbbiak ne duplikálódjanak; az eredeti kőlelőhelyek pótlása legyen elsődleges.
+- Visszafejteni vagy eredeti játéktesztben megfigyelni a **valós respawn-szabályokat**: mely tárgyak, milyen időközzel, mely eredeti pozíciókon és milyen feltételekkel kerülnek vissza. A 04:00-s térkép-visszatöltés és az eredeti objektumszűrő igazolt; az állatok külön mozgási/újramegjelenési viselkedése az N06 feladat része.
+- A természetes gyűjthető objektumokat és a történeti/egyedi/épített tárgyakat külön kezelni. Utóbbiak ne duplikálódjanak; az eredeti 36 többször előforduló természetes erőforrástípus 1 024 lelőhelyének visszaállítása legyen ellenőrzött.
 - **Már beragadt 0 köves mentésnél** biztosítani, hogy a játék folytatható legyen a meglévő készlet, pozíció és előrehaladás elvesztése nélkül. A mentési séma és az esetleges migráció az [N10](#n10) feladattal közösen készül.
 - Az események időzítését és szükséges számlálóit menteni, visszatöltéskor idempotensen alkalmazni; ne legyen dupla spawn és mentés–visszatöltés alapú farmolás.
-- Motor- és telefonos regressziós tesztek: minden kő elfogyasztása → eredeti feltétel kivárása → újabb kő felszedhető; mentés–visszatöltés, régi mentés, épített/történeti objektumok sértetlensége, crafting/minijátékok.
+- Motor- és telefonos regressziós tesztek: minden természetes erőforrás elfogyasztása → 04:00 → az eredeti helyeken újra gyűjthető; mentés–visszatöltés, régi mentés, épített/történeti objektumok sértetlensége, crafting/minijátékok.
 
 Akkor kész, ha:
 
 - [ ] A respawn feltételei eredeti forrás alapján dokumentáltak; a meg nem erősített részletek külön szerepelnek.
-- [ ] A gyűjthető kő (ID 3) elfogyása után a világ eredeti szabály szerint pótolja az erőforrást.
+- [x] A 36 visszatérő tárgykód (1 024 eredeti hely) 04:00-s utánpótlása forrásban megvalósítva, 22/22+321 teszttel igazolva; fizikai telefonos próba még hátra.
 - [ ] A jelenlegi kőhiányos 0.6.0 mentés új játék indítása nélkül, adatvesztésmentesen folytatható.
 - [ ] Nincs történeti tárgy-/építmény-duplázás, végtelen erőforrás és save/load után duplán alkalmazott utánpótlás.
 - [ ] Automatizált motorteszt és valódi telefonos regressziós próba zöld.
