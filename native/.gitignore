@@ -1,0 +1,15 @@
+.gradle/
+build/
+**/build/
+local.properties
+artifacts/
+app/src/main/assets/world.pack
+app/src/main/assets/art/
+*.apk
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.jks
+*.keystore
+__pycache__/
+
+private/
