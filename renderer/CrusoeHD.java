@@ -32,7 +32,14 @@ final class CrusoeHD {
 
     // Original source atlas size and exact clip rectangle identify the character.
     static Bitmap get(Image source, int sx, int sy, int sw, int sh) {
-        if (source == null || !"/data/BS3.png".equals(source.getCrusoeResourceName()) || source.getWidth() != 348 || source.getHeight() != 36) {
+        if (source == null || source.getWidth() != 348 || source.getHeight() != 36) {
+            return null;
+        }
+        // Most versions load "/data/BS3.png" by name, but the original game also
+        // contains an optional byte-array loading route. In that route the name
+        // is unavailable; compare a handful of opaque pixels of the original atlas.
+        if (!"/data/BS3.png".equals(source.getCrusoeResourceName())
+                && !matchesOriginalAtlas(source.getBitmap())) {
             return null;
         }
         String key = keyFor(sx, sy, sw, sh);
@@ -53,6 +60,16 @@ final class CrusoeHD {
             MISSING.add(key);
             return null;
         }
+    }
+
+    private static boolean matchesOriginalAtlas(Bitmap bitmap) {
+        return bitmap != null
+                && bitmap.getWidth() == 348 && bitmap.getHeight() == 36
+                && bitmap.getPixel(5, 20) == 0xFFA25F19
+                && bitmap.getPixel(25, 26) == 0xFF3A4664
+                && bitmap.getPixel(85, 26) == 0xFF1E2534
+                && bitmap.getPixel(205, 12) == 0xFFA25F19
+                && bitmap.getPixel(325, 4) == 0xFFB80000;
     }
 
     private static String keyFor(int sx, int sy, int sw, int sh) {
