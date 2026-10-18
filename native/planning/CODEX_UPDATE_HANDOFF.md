@@ -1,46 +1,14 @@
-# Codex átadás – Crusoe natív 0.6.1 (N12 teljes erőforrás-respawn)
+# Natív frissítési átadás – 0.6.2 (N12 és hordozható aláírás)
 
-**Ág:** `fix/n12-stone-regrowth-softlock` · **PR:** [#17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17) · **Hiba:** [#16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16)
+A korábbi, csak Codexre és 8-as verziókódra vonatkozó buildleírást a [közös helyi/GitHub útmutató](../docs/ANDROID_UPDATES.md) váltja fel a felhasználó új kérése alapján.
 
-## Cél
+- Alkalmazásazonosító: `hu.crusoe.standalone`, a korábbi privát keystore és tanúsítvány változatlan.
+- Verziónév: `0.6.2-native-alpha`; verziókód: UTC-másodperc 2020-01-01 óta. Nincs `.n12test` csomagra átírás.
+- Egyetlen helyi parancs: `bash scripts/build_update.sh`. A régi `build_signed_update_codex.sh` ugyanide irányít.
+- GitHubon egyszer be kell állítani a `CRUSOE_SIGNING_KEYSTORE_B64` Actions-titkot a meglévő kulccsal. A jelenlegi integráció ezt 403 Secrets API hibával megtagadta; a repó tulajdonosa állíthatja be.
+- N12: mind a **36 természetes erőforrás / 1 024 eredeti lelőhely** megújul 04:00-kor, ha a mező szabad. Az egyszeri és épített tárgyak védettek; a kőhiányos régi mentés mentése változatlan.
+- Helyben **61/61 erőforrás-feltétel, 323 motorfeltétel és 13/13 Android/Skia teszt** sikeres. Két régi helyi mentési bemenet nélkül a motorfeltételek száma 321.
+- Az APK tényleges csomagját, aláírását, világadatát és növekvő verzióját a `verify_update_apk.py` ellenőrzi. Hiányzó vagy rossz kulccsal nem készül frissítő APK.
+- A telefonon telepített fő appot **ne távolítsuk el**. Az alpha APK a meglévő alkalmazás frissítésére készült. Az eredeti kőhiányos mentés telefonos próbája, kilépés/visszatöltés és több napi 04:00 ellenőrzése még hátra van.
 
-A telefonon már telepített `hu.crusoe.standalone` 0.6.0-native-alpha alkalmazásra **adatvesztés nélkül rátelepíthető** 0.6.1-es APK készítése **a korábban használt keystore-ral**. Nem kell külön `n12test` alkalmazás, Windows, ADB vagy manuális mentésmozgatás a felhasználónak.
-
-## Kiadási biztonsági feltételek
-
-- **Alkalmazásazonosító:** `hu.crusoe.standalone` (nem változhat).
-- **Korábbi verziókód:** 7. **Új verziókód:** 8, verziónév: `0.6.1-native-alpha`.
-- **Várt aláíró tanúsítvány SHA-256:** `ce51e3426040b1497c65fd230f875e602d4766143ba3f505475e0996599b40c1` a korábbi 0.6.0 kiadás ellenőrzött metaadatai alapján. A keystore **privát**, tilos commitolni vagy logba másolni.
-- A Codex munkakörnyezetében megőrzött kulcs elvárt relatív elérési útja: `native/private/signing/native-debug.keystore`. Ha más helyen van, biztonságosan helyezd ide **helyben**, de **ne készíts új keystore-t**.
-- A `native/app/src/main/assets/world.pack` a privát vagy korábbi, ellenőrzött Android 0.6.0 munkakörnyezetből használható. Elvárt SHA-256: `324279ccfdb618d769572f1233d64c99a71725f5cf138acc84a7e1c0231bc6ce`; ne publikáld nyers erőforrásként a forráságon.
-- Az APK-ra rátelepíthetőség csak akkor várható, ha a csomagnév, a nagyobb verziókód **és ugyanaz az aláíró tanúsítvány** teljesül.
-
-## Egyetlen buildparancs Codexben
-
-```bash
-cd native
-bash scripts/build_signed_update_codex.sh
-```
-
-A parancs futtatja a teljes natív motortesztet és az Android-egységteszteket, megépíti a debug APK-t, majd az `apksigner` segítségével ellenőrzi, hogy az APK **ugyanazzal a tanúsítvánnyal** készült. Rossz aláírás esetén hibával leáll, és **nem hoz létre kiadható `Update.apk` fájlt**.
-
-Sikeres esetben a helyi eredmény: `native/artifacts/Crusoe-Native-0.6.1-Update.apk` és a `*.sha256` ellenőrzőösszeg.
-
-## Fejlesztés tartalma
-
-- A **04:00-s** eredeti Java ME térképi frissítés kiterjesztése a natív motorban **mind a 36 visszatérő természeti tárgykódra, 1 024 eredeti lelőhelyre** (a kőn kívül fa/ág/lián/fű, gyümölcsök, gombák, kagylók, giliszták stb.).
-- Az eredeti `data.y.a(int)` kizárási listáját felhasználjuk az állati/dinamikus entitások kiszűrésére.
-- A natív motor további védelmei: egyedi felszerelés, történeti tárgy, helykitöltő, nem szabad térképcsempe és épített objektum védelme; nincs önkényesen új helyen spawn.
-- A játékos korábban elakadt, **0 köves v1 mentését** továbbra is betöltéskor javítjuk egy elérhető, eredeti kőlelőhellyel, ha a környezetében nincs megközelíthető kő.
-- A mentési fájl formátuma változatlan; nincs készlet-/küldetés-/pozícióreset.
-
-## Minőségkapu a felhasználói APK-hoz
-
-1. N12 erőforrás- és teljes natív motortesztek, Robolectric/Android tesztek zöldek. Legutóbbi ellenőrzött QA: **61/61 erőforrás-egységteszt, 321 motorellenőrzés**, sikeres `assembleDebug` – [Actions #39147036018](https://github.com/fuloplevente1998/Crusoe_HD-Android/actions/runs/39147036018). Az explicit 36-kódos erőforráslista egyedi, többször előforduló felszerelést is kizár.
-2. Ugyanaz a csomagnév és aláírás; verziókód 8. Ha eltér, **ne telepítsd**.
-3. A telefonon **adatmegőrző frissítésként** telepítendő; a 0.6.0 alkalmazást **nem szabad eltávolítani**.
-4. Az eredeti, kőhiányos játékállásból `Folytatás`, közvetlen kőhelyreállítás és más erőforrások 04:00-s frissülése ellenőrizve.
-5. Mentés, ismételt betöltés, ismételt 04:00, pihenés, crafting, állatok/egyszeri tárgyak védelme ellenőrizve.
-6. Fizikai telefonos próba és visszaellenőrzött aláírás nélkül a PR maradjon Draft, ne legyen végleges release.
-
-A GitHub Actions `n12test` QA-buildje külön tesztcsomag, **nem** a végleges rátelepíthető frissítés.
+A [PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17) és [N12 / #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) a fizikai próba beérkezéséig nyitva marad; végleges kiadás nincs. A teljes játék történeti portja továbbra is fejlesztés alatt áll.

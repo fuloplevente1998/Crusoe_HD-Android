@@ -12,3 +12,5 @@ app/src/main/assets/world.pack
 __pycache__/
 
 private/
+CRUSOE_SIGNING_KEYSTORE_B64.txt
+*signing-backup*.zip
