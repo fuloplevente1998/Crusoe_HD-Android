@@ -1,8 +1,21 @@
 # Crusoe – saját motoros Android-játék
 
-**0.6.2-native-alpha:** önálló Android-alkalmazás saját játéklogikával és Canvas-alapú rajzolással. Közvetlenül a játék főmenüje indul, nincs Java ME-kompatibilitás, emulátor, JAR-import, WebView vagy távoli tartalom. Android 8.0+ szükséges.
+**0.7.0-native-alpha:** önálló Android-alkalmazás saját játéklogikával és Canvas-alapú rajzolással. Közvetlenül a játék főmenüje indul, nincs Java ME-kompatibilitás, emulátor, JAR-import, WebView vagy távoli tartalom. Android 8.0+ szükséges.
 
 Ez egy bővülő játszható alap, **nem a teljes eredeti játék elkészült portja**. A korábbi emulátoros APK külön fejlesztési kísérlet volt.
+
+## Új a 0.7.0-ban
+
+- Fogyasztás előtt látható élelem/víz/életváltozás, eszközfeltétel és mérgezési figyelmeztetés.
+- Működő halálállapot: nulla élettel megáll a játék. Natív halálképernyő, külön utolsó élő mentés, megerősített újrakezdés és főmenü.
+- Pihenés előtt megerősítés, idő- és készletelőnézet; kritikus túlélési értékeknél magyar HUD-jelzés.
+- 18 Android/Skia teszt, 22 új túlélési feltétel, valamint a változatlan 61 erőforrás- és 323 helyi motorfeltétel sikeres. A telefonos próba még hátra van.
+
+[Szabályok, eredeti forrásmegfigyelések és még egyszerűsített részek](planning/SURVIVAL.md).
+
+![Halálképernyő](docs/previews/death.png)
+
+[Fogyasztási figyelmeztetés](docs/previews/food-warning.png) · [Pihenés előnézete](docs/previews/rest-preview.png).
 
 ## Elkészült
 
@@ -54,7 +67,7 @@ A prioritásos, elfogadási feltételekkel rögzített teljes lista: [ROADMAP.md
 
 A teljes eredeti küldetéslánc és történeti állapotgép; a minijátékok pontos mozgása, időzítése és összes mellékhatása; az állatok szigetbeli mozgása és teljes harca; az időjárás és árapály szabályai; a sziget további területeit megnyitó speciális interakciók és a befejezés. A 13 kinyert bevezető esemény nem az összes küldetés.
 
-A tereprétegek adatai pontosak, de a dekorációk és tárgyak grafikai hozzárendelése még közelítő; több tárgy közös illusztrációt használ. A túlélési/időmodell és az építés helyezése jelenleg egyszerűsített, az eredetihez való viselkedési egyezésük nincs igazolva. Egyes eredeti leírások és bevezető szövegek még angolul jelennek meg. A grafika és az animáció sem végleges.
+A tereprétegek adatai pontosak, de a dekorációk és tárgyak grafikai hozzárendelése még közelítő; több tárgy közös illusztrációt használ. A túlélési/időmodell és az építés helyezése jelenleg egyszerűsített; a 0.7.0 halálállapota és mentés-visszatöltése már működik, de az eredetihez való viselkedési egyezésük nincs igazolva. Egyes eredeti leírások és bevezető szövegek még angolul jelennek meg. A grafika és az animáció sem végleges.
 
 Fizikai telefonos teszt még nincs. A Skia-tesztek nem bizonyítanak telefonon mért 60 FPS-t vagy alacsony RAM-használatot. Android 8-on a textúra-kompozit kompatibilitása miatt szoftveres rajzolási visszaesés lép életbe; Android 9+-on GPU-s Canvas az alapértelmezés.
 
@@ -66,7 +79,7 @@ Fizikai telefonos teszt még nincs. A Skia-tesztek nem bizonyítanak telefonon m
 
 ## Helyi fordítás
 
-A generált grafikák a repóban, az `app/src/main/assets/art/` mappában találhatók. Az előnézeti képek a [docs/previews](docs/previews) mappában érhetők el. Az APK a [0.6.2-es tesztkiadásból](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.6.2-alpha) tölthető le. A forráság továbbra sem tartalmazza az eredeti JAR/JAD-ot, a közvetlenül kinyert nyers adatokat vagy a helyi világcsomagot. Az eredeti JAR-ból csak adatokat olvasunk ki; a játék eredeti végrehajtható osztályai nem kerülnek a natív programba.
+A generált grafikák a repóban, az `app/src/main/assets/art/` mappában találhatók. Az előnézeti képek a [docs/previews](docs/previews) mappában érhetők el. Az APK a [0.7.0-s tesztkiadásból](https://github.com/fuloplevente1998/Crusoe_HD-Android/releases/tag/native-v0.7.0-alpha) tölthető le. A forráság továbbra sem tartalmazza az eredeti JAR/JAD-ot, a közvetlenül kinyert nyers adatokat vagy a helyi világcsomagot. Az eredeti JAR-ból csak adatokat olvasunk ki; a játék eredeti végrehajtható osztályai nem kerülnek a natív programba.
 
 A rátelepíthető APK-hoz a **korábbi privát aláírókulcs** is szükséges; nélküle a build szándékosan leáll. A részletes [helyi/GitHub frissítési útmutató](docs/ANDROID_UPDATES.md) az ellenőrzött régi APK-ból való adat-visszatöltést is leírja, így az eredeti JAR újbóli feldolgozása nem szükséges.
 

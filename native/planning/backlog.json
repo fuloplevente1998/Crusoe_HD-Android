@@ -80,8 +80,8 @@
       "id": "N04",
       "priority": "P0",
       "title": "Túlélési értékek, táplálkozás, pihenés és halálállapot",
-      "status": "egyszerűsített; halálállapot hiányzik",
-      "current": "Négy közelítő érték (élet/élelem/víz/erő) és fix nyolcórás pihenés működik. A tárgyoszlopok teljes jelentése és az eredeti túlélési viselkedés nincs igazolva. A nulla élet jelenleg nem indít teljes game-over folyamatot.",
+      "status": "részben kész: 0.7.0 natív halálállapot, fogyasztási előnézet és pihenési megerősítés; teljes eredeti túlélési képlet még hátra",
+      "current": "A 0.7.0 megállítja az aktív játékot nulla életnél. A tarisznyában látható az élelem/víz/élet hatás és a szükséges eszköz, ártalmas tárgynál figyelmeztetés; pihenés előtt készlet- és időelőnézet. Halálból az utolsó élő mentés visszatölthető. 22 új túlélési feltétel és 18 Android/Skia teszt sikeres, a korábbi N12 és régi mentések vizsgálata is zöld. Az eredeti világóra, időbeli fogyás, betegség/morál és alvásképlet továbbra is feltárandó. Fizikai telefonos próba hátra.",
       "work": [
         "Az eredeti éhség, szomjúság, energia/erő, morál, súly és kapcsolódó értékek pontos jelentését és változását feltárni; nem azonosítani őket automatikusan a mostani négy mezővel.",
         "A főzés/fogyasztás, mérgezés, tábori pihenés/alvás és az eszköz-/építményfeltételek eredeti szabályait átültetni.",
@@ -98,7 +98,8 @@
       ],
       "issue_number": 8,
       "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/8",
-      "issue_state_at_snapshot": "open"
+      "issue_state_at_snapshot": "open",
+      "implementation_notes": "native/planning/SURVIVAL.md"
     },
     {
       "id": "N05",
@@ -238,7 +239,7 @@
       "priority": "P0",
       "title": "Mentések bővítése és migráció az új világállapotokhoz",
       "status": "alap kész; az új rendszerekhez bővítendő",
-      "current": "CRC-vel védett atomikus mentés működik. A 0.3.1/0.5.0 motorral készült helyi mentések betöltése tesztelt. A formátum még nem tárol teljes történeti, árapály-, ruházat-, tároló- és állatállapotot.",
+      "current": "CRC-vel védett atomikus mentés működik. A 0.3.1/0.5.0 motorral készült helyi mentések betöltése tesztelt. A formátum még nem tárol teljes történeti, árapály-, ruházat-, tároló- és állatállapotot. A 0.7.0 v1 formátumban megőrzi a halált, külön atomikus élő mentést tart, új kalandnál mindkét fájlt újraindítja. Sérült másolat és folyamat-újralétrehozás helyi Android-tesztben ellenőrzött; a teljes mentési/felhő-/folyamatkilövési terv még nem kész.",
       "work": [
         "Verziózott bővítési/migrációs tervet készíteni a következő állapotok bevezetése előtt.",
         "Megőrizni a natív alpha mentéseinek betölthetőségét és a csomagnév/aláíró folytonosságát; az új mezők alapértékeit tudatosan megadni.",

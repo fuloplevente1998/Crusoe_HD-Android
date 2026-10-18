@@ -8,7 +8,7 @@ import java.util.*;
 
 /** GPU-backed native Android scene renderer. World coordinates are tile units. */
 public final class GameView extends View {
-    public static final int TITLE=0,WORLD=1,MAP=2,HARVEST=3;
+    public static final int TITLE=0,WORLD=1,MAP=2,HARVEST=3,DEAD=4;
     private static final float TILE=48;
     private static final int INK=0xff102e2e,GOLD=0xffedc37e,WHITE=0xfff6efd9;
     private static final int[] PALETTE={0xffe6d798,0xff6e9d41,0xffb77d4a,0xff777b3b,0xff78d8c2,0xff33bcd3,0xff1789bf,0xff73715a,0xffb5a26c,0xff3e732b,0xff8a603b,0xff2c502a,0xff237b85,0xff1a607a,0xff10436c,0xff4b4030};
@@ -74,13 +74,26 @@ public final class GameView extends View {
         int width=getWidth()-getPaddingLeft()-getPaddingRight(),height=getHeight()-getPaddingTop()-getPaddingBottom();if(width<=0||height<=0)return;
         scale=width/720f;logicalHeight=height/scale;
         canvas.save();canvas.translate(getPaddingLeft(),getPaddingTop());canvas.scale(scale,scale);canvas.clipRect(0,0,720,logicalHeight);
-        if(screen==TITLE)drawTitle(canvas);else if(screen==MAP)drawMap(canvas);else if(screen==HARVEST)drawHarvest(canvas);else {
+        if(screen!=TITLE&&screen!=DEAD)activity.checkGameOver();
+        if(screen==TITLE)drawTitle(canvas);else if(screen==DEAD)drawDeath(canvas);else if(screen==MAP)drawMap(canvas);else if(screen==HARVEST)drawHarvest(canvas);else {
             long now=System.nanoTime();float dt=lastFrame==0?0:Math.min(.1f,(now-lastFrame)/1e9f);lastFrame=now;
             if(!activity.paused){activity.engine.update(dt,joyX,joyY);saveSeconds+=dt;if(saveSeconds>20){activity.save();saveSeconds=0;}}
             float mix=1-(float)Math.exp(-dt*9);cameraX+=(activity.engine.x*TILE-cameraX)*mix;cameraY+=(activity.engine.y*TILE-cameraY)*mix;
-            drawWorld(canvas);drawHUD(canvas);
+            if(activity.checkGameOver())drawDeath(canvas);else{drawWorld(canvas);drawHUD(canvas);}
         }
         canvas.restore();if((screen==WORLD||screen==HARVEST)&&!activity.paused)postInvalidateOnAnimation();
+    }
+    private void drawDeath(Canvas c){
+        drawWorld(c);box(c,0,0,720,logicalHeight,0,0xe8102425);
+        float top=logicalHeight*.28f;
+        centered(c,"A KALAND VÉGET ÉRT",360,top,32,GOLD);
+        wrapped(c,"Robinson életereje elfogyott. Visszatérhetsz az utolsó élő mentéshez, vagy új kalandot kezdhetsz.",64,top+62,592,24,WHITE,4);
+        centered(c,activity.engine.day+". nap · Nincs több életerőd.",360,top+190,19,0xffa6beb3);
+        float first=logicalHeight*.58f;
+        box(c,40,first,680,first+76,17,activity.hasCheckpoint()?GOLD:0xff36524b);
+        centered(c,"UTOLSÓ ÉLŐ MENTÉS",360,first+48,23,activity.hasCheckpoint()?INK:0xff83978e);
+        box(c,40,first+94,680,first+170,17,0xff33544b);centered(c,"ÚJ KALAND",360,first+142,23,WHITE);
+        box(c,40,first+188,680,first+264,17,0xff193b38);centered(c,"FŐMENÜ",360,first+236,23,WHITE);
     }
     private void drawTitle(Canvas c){
         float h=logicalHeight;
@@ -93,7 +106,7 @@ public final class GameView extends View {
         text(c,"Egy sziget. Egy esély a túlélésre.",44,h*.49f+236,23,WHITE);
         float first=h-243;box(c,40,first,680,first+78,17,GOLD);centered(c,"ÚJ KALAND",360,first+49,25,INK);
         box(c,40,first+94,680,first+166,17,0x884b756c);centered(c,"FOLYTATÁS",360,first+139,24,activity.hasSave()?WHITE:0xff83978e);
-        centered(c,"Fejlesztői változat · 0.6",360,h-27,18,0xffa6beb3);
+        centered(c,"Fejlesztői változat · "+activity.versionLabel,360,h-27,18,0xffa6beb3);
     }
     private void drawWorld(Canvas c){
         GameEngine e=activity.engine;
@@ -177,6 +190,7 @@ public final class GameView extends View {
         int target=e.selected>=0&&e.objects[e.selected]!=0?e.selected:e.nearest();
         if(e.coconutPalm(e.selected))target=e.selected;
         if(target>=0){String name=e.coconutPalm(target)?"Kókuszpálma":activity.data.items[e.objectAt(target)].name;box(c,194,h-295,694,h-246,12,0xd9102e2e);centered(c,name,444,h-263,20,WHITE);}
+        String warning=e.survivalWarning();if(!warning.isEmpty())text(c,warning,36,156,14,GOLD);
         if(e.notice!=null&&!e.notice.isEmpty()){
             box(c,22,178,698,253,13,0xc9102e2e);wrapped(c,e.notice,38,205,644,22,WHITE,2);
         }
@@ -215,7 +229,8 @@ public final class GameView extends View {
         if(g==null){screen=WORLD;lastFrame=0;return;}
         long now=System.nanoTime();float dt=lastFrame==0?0:Math.min(.1f,(now-lastFrame)/1e9f);lastFrame=now;
         if(!activity.paused){g.steer(joyX,joyY,dt);g.update(dt);}
-        if(g.finished&&harvestResult==null){resetInput();harvestResult=activity.engine.finishHarvest();activity.engine.say(harvestResult);activity.save();}
+        if(g.finished&&harvestResult==null){resetInput();harvestResult=activity.engine.finishHarvest();activity.engine.say(harvestResult);activity.save();
+            if(activity.checkGameOver()){drawDeath(c);return;}}
         boolean coconut=g.tool==HarvestGame.COCONUT,ballistic=g.isBallistic(),net=g.tool==HarvestGame.NET;
         c.drawColor(INK);text(c,coconut?"KÓKUSZDOBÁLÁS":ballistic?"VADÁSZAT":net?"HALÁSZAT HÁLÓVAL":"HORGÁSZAT",30,60,28,GOLD);
         text(c,"VISSZA",588,60,20,WHITE);
@@ -318,11 +333,18 @@ public final class GameView extends View {
         int action=event.getActionMasked(),index=event.getActionIndex(),pointer=event.getPointerId(index);
         float x=(event.getX(index)-getPaddingLeft())/scale,y=(event.getY(index)-getPaddingTop())/scale;
         if(action==MotionEvent.ACTION_CANCEL){resetInput();return true;}
+        if(screen==DEAD){
+            if(action==MotionEvent.ACTION_UP&&x>=40&&x<=680){float first=logicalHeight*.58f;
+                if(y>=first&&y<=first+76&&activity.hasCheckpoint())activity.restoreCheckpoint();
+                else if(y>=first+94&&y<=first+170)activity.confirmNewGame();
+                else if(y>=first+188&&y<=first+264)activity.returnToTitle();
+            }return true;
+        }
         if(screen==HARVEST)return harvestTouch(event,action,index,pointer,x,y);
         if(screen!=WORLD){
             if(action==MotionEvent.ACTION_UP){performClick();
                 if(screen==TITLE){float first=logicalHeight-243;
-                    if(y>=first&&y<=first+78){if(activity.hasSave())new android.app.AlertDialog.Builder(activity).setMessage("Új kalandot indítasz? A korábbi mentést az új játék következő mentése felülírja.").setPositiveButton("Új kaland",(d,w)->activity.start(false)).setNegativeButton("Mégsem",null).show();else activity.start(false);}
+                    if(y>=first&&y<=first+78){if(activity.hasSave())activity.confirmNewGame();else activity.start(false);}
                     else if(y>=first+94&&y<=first+166&&activity.hasSave())activity.start(true);
                 }else{
                     float side=Math.min(672,logicalHeight-265),left=(720-side)/2;

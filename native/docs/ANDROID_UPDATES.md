@@ -29,7 +29,7 @@ A jelenlegi Codex GitHub-integráció a Secrets API-t `403 Resource not accessib
 
 ## GitHub-build
 
-A változtatások jelenleg a **`fix/native-update-signing`** ágon vannak; a `main` még a korábbi emulátoros alap. Az Actionsben az **android-debug.yml** munkafolyamatot válaszd, majd **Run workflow → Branch: fix/native-update-signing → Run workflow**. A listában a workflow régi neve még „Android debug baseline” lehet, amíg az alapértelmezett ág nem frissül. Az itt megadott ág kódja már a natív frissítőt építi.
+A változtatások jelenleg a **`feat/native-survival-v01`** ágon vannak; a `main` még a korábbi emulátoros alap. Az Actionsben az **android-debug.yml** munkafolyamatot válaszd, majd **Run workflow → Branch: feat/native-survival-v01 → Run workflow**. A listában a workflow régi neve még „Android debug baseline” lehet, amíg az alapértelmezett ág nem frissül. Az itt megadott ág kódja már a natív frissítőt építi.
 
 A sikeres futás végén az **Artifacts → crusoe-native-update-…** ZIP-ben van a **`Crusoe-Native-Update.apk`**, a `SHA256SUMS` és a `verification.json`. Ehhez GitHub-bejelentkezés kell. Csomagold ki, és az APK-t a meglévő app frissítéseként telepítsd. A hiányzó titokkal futtatott build a tesztek után világos hibával áll meg, telepíthetetlen vagy külön csomagú APK-t nem publikál.
 
@@ -53,7 +53,7 @@ Eredmény: `artifacts/update/Crusoe-Native-Update.apk`. A régi `build_android.s
 
 Minden build a **2020-01-01 00:00:00 UTC óta eltelt másodpercek** számát kapja verziókódként. Ez helyben és Actionsben azonos szabály, a munkafolyamat futásszámától független. A később elkészült build nagyobb kódú, ha a gépek órája pontos; a másodpercen belüli buildek kódja azonos lehet. Egy korábban készült artifact újraletöltése nem lesz újabb verzió.
 
-A verziónév most `0.6.2-native-alpha`. Kivételesen explicit kód is megadható `-PcrusoeVersionCode=...` Gradle-paraméterrel vagy `CRUSOE_VERSION_CODE` változóval, de ilyenkor neked kell biztosítani, hogy nagyobb legyen a telefonra telepítettnél és kisebb 2 100 000 001-nél. Ne adj önkényesen nagy kódot, mert az későbbi frissítést akadályozhat. A Gradle minimum 8-at fogad el.
+A verziónév most `0.7.0-native-alpha`. Kivételesen explicit kód is megadható `-PcrusoeVersionCode=...` Gradle-paraméterrel vagy `CRUSOE_VERSION_CODE` változóval, de ilyenkor neked kell biztosítani, hogy nagyobb legyen a telefonra telepítettnél és kisebb 2 100 000 001-nél. Ne adj önkényesen nagy kódot, mert az későbbi frissítést akadályozhat. A Gradle minimum 8-at fogad el.
 
 Az elkészült APK független ellenőrzése egy korábbi APK-val:
 
