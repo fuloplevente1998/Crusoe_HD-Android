@@ -1,13 +1,13 @@
-# N12 / P0 – Kőhiány feloldása és átmeneti erőforrás-utánpótlás
+# N12 / P0 – A teljes, naponta 04:00-kor újratermelődő erőforrásrendszer
 
 Kapcsolódó hiba: [#16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16). Kiindulás: natív **0.6.0 alpha**, Java-futtatókörnyezet nélküli saját motor.
 
 ## Eredet és bizonyosság
 
 - A játékos beszámolója: az eredeti Java ME-változatban a térképen található gyűjthető dolgok újratermelődtek.
-- Az eredeti JAR `BIGislandObjects.byt` rétegében 54 helyen a kő (natív tárgyazonosító 3, térképkód 4) szerepel.
+- Az eredeti JAR `BIGislandObjects.byt` rétegében **1 379 elhelyezett térképi objektum** szerepel. Ebből **36 rendszeresen gyűjthető tárgykód 1 024 lelőhelyen**; a kő (ID 3, térképkód 4) 54 lelőhelyet ad. A visszatérő kategóriák között kő, ág, lián, száraz fű, farönk, bambusz, moha, agyag, giliszta, gyapot, gyümölcsök, gombák, kagylók, tojás és további természeti készletek vannak.
 - A jelenlegi natív motor a felszedett tárgyat `objects[index]=0` utasítással eltávolította, de nem pótolta.
-- Az eredeti Java ME-kódban a **04:00-s tárgytérkép-visszatöltés időpontja igazolt**: a `data.v.a()` által meghívott `data.ad.s()` akkor futtatja a `data.g.a("BIGislandObjects", ...)` visszatöltést, ha a `data/p.K` játékóra 4, és egy jelző megakadályozza az ismétlést ugyanabban az órában. A `data.v` a `K` órát 0–23 között lépteti. **A többi erőforrás és az egyszeri tárgyak eredeti szűrőrendszere még részben feltárandó**; csak a követ állítjuk vissza automatikusan.
+- Az eredeti Java ME-kódban a **04:00-s tárgytérkép-visszatöltés időpontja igazolt**: a `data.v.a()` által meghívott `data.ad.s()` akkor futtatja a `data.g.a("BIGislandObjects", ...)` visszatöltést, ha a `data/p.K` játékóra 4, és egy jelző megakadályozza az ismétlést ugyanabban az órában. A `data.v` a `K` órát 0–23 között lépteti. Az eredeti `data.y.a(int)` kivételeit a natív szűréshez ellenőriztük. Az állatok külön dinamikus rendszert alkotnak, az egyszeri felszerelések és építmények védelmét a natív port külön biztosítja.
 
 ### Eredeti játék – ellenőrzött időzítés és szűrés
 
@@ -19,14 +19,14 @@ Az eredeti JAR obfuszkált osztályaiban az alábbi kapcsolódás azonosítható
 - `data.g.a(String, byte[])` közvetlenül a JAR-beli `/BIGislandObjects.byt` adatokat olvassa; bizonyos objektumkódokat a `data.y.a(int)` szűrővel nem enged újra megjelenni.
 - `data.y.a(int)` az `3, 5, 41–45, 47–50, 52–54, 56–60, 62–64` kódokra ad igazat. **A kő eredeti térképkódja 4, ezért nem esik a tiltott újratöltések közé.**
 
-**Következtetés:** a **kő teljes eredeti lelőhely-listájának 04:00-s visszatöltése bizonyított forráskódú viselkedés**. A natív port eltér az eredetitől annyiban, hogy más objektumok, már felépített tárgyak védelme érdekében most kizárólag a természetes kőlelőhelyeket frissíti. Az összes többi gyűjthető tárgy pontos újratöltését később az eredeti szűrőszabályok szerint kell átültetni.
+**Következtetés:** a 04:00-s **teljes eredeti objektumtérkép-beolvasás** bizonyított. A natív port e ciklusban most **mind a 36 többször előforduló természeti erőforrást** helyreállítja a pontos eredeti lelőhelyén, összesen **1 024** lehetséges mezőn. A `data.y.a(int)` szerinti dinamikus állatok kihagyandók; a 96-os helykitöltő és az egyszeri (csak egyetlen eredeti példányú) történeti felszerelések védelmet kapnak. A megmaradt vagy megépített tárgyat nem írjuk felül. Ezek utóbbi biztosítékok tudatos natív játékbiztonsági eltérések az eredeti teljes térkép-felülírástól.
 
-## Bevezetett átmeneti szabály
+## Megvalósított 04:00-s erőforrás-frissítés
 
 1. Játékállás betöltésekor, **ha a játékosnál nincs kő és a jelenlegi bejárható területéről egy kő sem megközelíthető**, helyreállít egy követ.
 2. Az eredeti 54 kőlelőhely közül csak **eredetileg követ tartalmazó, most üres és a játékos által bejárható mezőt** választ.
 3. A választás determinisztikus: a játékoshoz legközelebb eső, a fenti feltételeknek megfelelő kőmezőt állítja vissza. A játékos aktuális mezőjét és más objektummal vagy építménnyel foglalt mezőt kihagyja.
-4. A játékbeli **04:00 átlépésekor** az eredeti, jelenleg üres kőlelőhelyeket újratöltjük. A játékos mezőjét, az építményeket és más objektumokkal foglalt helyeket nem módosítjuk. A 00:00-s napváltás önmagában nem termel új követ. Ez a bizonyított eredeti tárgytérkép-visszatöltési mechanika **kőre szűkített, biztonságos első lépése**.
+4. A játékbeli **04:00 átlépésekor az összes visszatérő természeti gyűjthető tárgy** visszakerül az eredeti, üres lelőhelyére. A játékos mezőjét, az építményeket és más objektumokkal foglalt helyeket nem módosítjuk. A 00:00-s napváltás önmagában nem frissíti a készleteket. A kőhiányos régi mentés betöltésekor alkalmazott azonnali, egyetlen kő-visszaállítás ettől függetlenül megmarad.
 5. Ha a játékos jelenlegi területén nincs biztonságosan elérhető üres, eredeti kőmező, nem jelenik meg új kő és nem adunk automatikusan készlettárgyat; ez külön hibajelzésként kezelendő.
 
 ## Mentés és visszafelé kompatibilitás
@@ -40,7 +40,7 @@ A mentési fejléc, `sourceHash`, CRC, teljes `objects[]` mező, receptállapot 
 - Játékfüggetlen egységteszt (az eredeti JAR nélkül): `bash native/scripts/test_respawn.sh` (natív könyvtárból: `bash scripts/test_respawn.sh`).
 - Privát világadatot használó motorregresszió: `bash native/scripts/test_engine.sh` a korábbi saját `world.pack`-kel. Tartalmazza a 0 köves v1 mentés és az elzárt térképrésszel kapcsolatos teszteket.
 - A kezdőterületről a mostani bejárhatósági modell szerint az 54 eredeti kőlelőhelyből **5 közvetlenül megközelíthető** akkor, ha az összes korábbi követ felszedtük. Helyi térképaudit: `(13,136)`, `(23,147)`, `(33,139)`, `(38,153)`, `(35,164)` (0-tól számozott mezők).
-- A tiszta kőmodul kiegészített Java-egységtesztje **16/16 sikeres**. Ez nem a teljes GameEngine fordítása, nem Android APK-teszt.
+- A korábbi kőmodul ellenőrzése **16/16** sikeres volt. Az új verzió további teszteket tartalmaz az összes erőforrás-kategóriára, állatok, egyedi tárgyak, építmények és 04:00-s frissítési határhelyzetek kezelésére; az új teljes build eredményét külön ellenőrizni kell.
 - Fizikai telefonon még ellenőrzendő: régi mentés feloldása; 04:00-s utánpótlás; 00:00-nál korai visszaállás hiánya; tábori pihenéssel átlépett 04:00; crafting; kókuszminijáték; automatikus mentés; kilépés-visszatérés.
 
 ## Kiadási korlát
