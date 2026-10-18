@@ -116,6 +116,8 @@ replace_once("Graphics.java",
 replace_once("Graphics.java",
     "\t\tRect srcR = rect;\n\t\tRectF dstR = rectF;\n\t\tfloat dx;",
     """\t\tBitmap hdReplacement = CrusoeHD.get(image, x_src, y_src, width, height);
+\t\tfinal float hdWidth = hdReplacement == null ? width : (float) height * hdReplacement.getWidth() / hdReplacement.getHeight();
+\t\tfinal float hdLeft = (width - hdWidth) / 2.0f;
 \t\tRect srcR = rect;
 \t\tRectF dstR = rectF;
 \t\tfloat dx;""")
@@ -134,6 +136,20 @@ original_call = "canvas.drawBitmap(image.getBitmap(), srcR, dstR, null);"
 assert region.count(original_call) == 2, "Upstream drawRegion changed: expected 2 bitmap operations"
 region = region.replace(original_call,
     "canvas.drawBitmap(hdReplacement != null ? hdReplacement : image.getBitmap(), srcR, dstR, null);")
+
+# Preserve aspect ratio of source artwork. Original 15-19 px wide character
+# slots are much narrower than modern square artwork. Keep logical anchor points
+# and game movement fixed; draw the replacement wider, centered on the old slot.
+plain = "dstR.set(dx, dy, dx + width, dy + height);"
+if region.count(plain) != 1:
+    raise RuntimeError("Upstream drawRegion TRANS_NONE geometry changed")
+region = region.replace(plain, "dstR.set(dx + hdLeft, dy, dx + hdLeft + hdWidth, dy + height);")
+last = "dstR.set(0, 0, width, height);"
+if region.count(last) != 2:
+    raise RuntimeError("Upstream drawRegion transformed geometry changed")
+p = region.rfind(last)
+region = region[:p] + "dstR.set(hdLeft, 0, hdLeft + hdWidth, height);" + region[p+len(last):]
+
 sources["Graphics.java"] = s[:start] + region + s[end:]
 
 replace_once("Canvas.java",
