@@ -36,7 +36,7 @@ jobs:
 
       - name: Install exact upstream Android SDK / NDK
         run: |
-          sdkmanager --install "platforms;android-37" "ndk;29.0.14206865"
+          sdkmanager --install "platforms;android-36" "ndk;29.0.14206865"
           yes | sdkmanager --licenses >/dev/null || true
 
       - name: Checkout pinned open-source J2ME Loader
@@ -46,6 +46,9 @@ jobs:
           git clone --filter=blob:none https://github.com/nikita36078/J2ME-Loader.git loader
           git -C loader checkout "$UPSTREAM_COMMIT"
           git -C loader submodule update --init --recursive
+          # Upstream currently requests API 37; public SDK repository only exposes stable 36.
+          sed -i "s/COMPILE_SDK = 37/COMPILE_SDK = 36/" loader/build.gradle
+          grep -F "COMPILE_SDK = 36" loader/build.gradle
           echo "J2ME Loader commit: $(git -C loader rev-parse HEAD)"
 
       - name: Configure temporary CI signing credentials
