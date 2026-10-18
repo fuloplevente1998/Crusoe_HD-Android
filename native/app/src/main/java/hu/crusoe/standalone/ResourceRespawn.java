@@ -36,16 +36,15 @@ public final class ResourceRespawn {
         checkMap(originalObjects);
         checkMap(currentObjects);
 
-        // Derive natural, repeatable sources from the verified original map:
-        // do not recreate unique story equipment or placed one-off objects.
-        int[] originalCounts = new int[256];
-        for (byte tile : originalObjects) originalCounts[tile & 255]++;
+        // Only restore the 36 audited natural item map codes. A frequency-based
+        // heuristic would respawn unique/story objects if a map revision happened
+        // to contain more than one instance of the same special object.
         final int playerIndex = (int) playerY * MAP_WIDTH + (int) playerX;
         int restored = 0;
         for (int i = 0; i < MAP_TILES; i++) {
             int originalCode = originalObjects[i] & 255;
             if (i == playerIndex || currentObjects[i] != 0
-                    || !isRecurringResource(originalCode, originalCounts)) continue;
+                    || !isRecurringResource(originalCode)) continue;
             currentObjects[i] = originalObjects[i];
             restored++;
         }
@@ -53,16 +52,24 @@ public final class ResourceRespawn {
     }
 
     /**
-     * Original data.y.a(int) excludes animal/dynamic object codes.
-     * The original map has 36 recurring natural item codes (1024 placements).
-     * Map code 96 is a non-collectible placeholder, not a resource.
+     * Explicitly audited original BIGislandObjects.map codes (not item IDs):
+     * 36 naturally collectible resources, 1,024 original tile placements.
+     * Sources: 0.6.0 world.pack original layers and its item catalog.
+     *
+     * Do not infer regrowth from duplicate counts alone: multiple copies of a
+     * story item or later custom building must never become renewable.
      */
-    static boolean isRecurringResource(int mapCode, int[] sourceCounts) {
-        if (mapCode <= 0 || mapCode >= sourceCounts.length
-                || sourceCounts[mapCode] <= 1 || mapCode == 96) return false;
-        return !excludedByOriginalLoader(mapCode);
+    static boolean isRecurringResource(int mapCode) {
+        return switch(mapCode) {
+            case 1, 2, 4, 7, 8, 9, 12, 14, 21, 22,
+                 25, 26, 27, 28, 29, 31, 32, 33, 34, 36,
+                 39, 40, 65, 66, 67, 68, 69, 71, 72, 73,
+                 74, 75, 76, 91, 94, 99 -> true;
+            default -> false;
+        };
     }
 
+    /** Original J2ME data.y.a(int) dynamic/animal exclusions. */
     static boolean excludedByOriginalLoader(int code) {
         return code == 3 || code == 5
                 || (code >= 41 && code <= 45)
