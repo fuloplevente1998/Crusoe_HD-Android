@@ -44,7 +44,7 @@ A [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17) 
 
 A régi, **kő nélküli mentések megmentése** is része a PR-nek; a mentési formátum változatlan. A [P0 N12 / #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) feladat addig nyitva marad, amíg a meglévő telefonos mentés folytatását nem igazoltuk.
 
-**Ellenőrzés:** 22/22 erőforrás-egységteszt, **321 teljes natív motorfeltétel**, és sikeres Android CI fordítás a [#39142615210 futásban](https://github.com/fuloplevente1998/Crusoe_HD-Android/actions/runs/39142615210). A felhasználó saját alkalmazására **Codexben, a korábbi privát keystore-ral** fordítjuk a valódi frissítő APK-t, nem külön települő tesztappként. [Codex átadás](planning/CODEX_UPDATE_HANDOFF.md) · [Részletes forrásvizsgálat](planning/RESPAWN_N12.md).
+**Ellenőrzés:** 61/61 erőforrás-egységteszt, **321 teljes natív motorfeltétel**, sikeres Android CI fordítás a [#39147036018 futásban](https://github.com/fuloplevente1998/Crusoe_HD-Android/actions/runs/39147036018). A 36 természetes térképkód explicit listája kizárja azt is, hogy egy több példányban szereplő egyedi felszerelés tévesen újratermelődjön. A felhasználó saját alkalmazására **Codexben, a korábbi privát keystore-ral** fordítjuk a valódi frissítő APK-t, nem külön települő tesztappként. [Codex átadás](planning/CODEX_UPDATE_HANDOFF.md) · [Részletes forrásvizsgálat](planning/RESPAWN_N12.md).
 
 ## Még hiányzik
 
