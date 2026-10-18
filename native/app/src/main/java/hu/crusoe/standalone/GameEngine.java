@@ -42,7 +42,7 @@ public final class GameEngine {
         return rock&&data.layers[2][i]==0&&objects[i]==0;
     }
     public void stop(){route.clear();walking=false;}
-    private int restoreReachableStone(){
+    private int restoreReachableStone(boolean onlyIfNoApproachableStone){
         int startX=(int)x,startY=(int)y;
         if(!passable(startX,startY))return -1;
         boolean[] reachable=new boolean[32400];
@@ -60,6 +60,7 @@ public final class GameEngine {
                 }
             }
         }
+        if(onlyIfNoApproachableStone&&ResourceRespawn.hasApproachableStone(objects,reachable))return -1;
         return ResourceRespawn.restoreNearestStone(
                 data.layers[GameData.OBJECTS],objects,x,y,reachable);
     }
@@ -90,7 +91,7 @@ public final class GameEngine {
         if(hour>=24){
             hour-=24;day++;
             // Provisional daily stone regrowth. Original cadence still under investigation.
-            restoreReachableStone();
+            restoreReachableStone(false);
         }
         food=Math.max(0,food-dt*.035f);water=Math.max(0,water-dt*.05f);
         energy=Math.max(0,energy-dt*(walking?.025f:.005f));
@@ -290,8 +291,8 @@ public final class GameEngine {
         // Save-v1 compatibility: salvage exhausted worlds without replacing the save,
         // resetting inventory or inventing new stone locations.
         int recovery=-1;
-        if(inventory[ResourceRespawn.STONE_ITEM_ID]==0&&!ResourceRespawn.containsStone(objects)){
-            recovery=restoreReachableStone();
+        if(inventory[ResourceRespawn.STONE_ITEM_ID]==0){
+            recovery=restoreReachableStone(true);
         }
         if(recovery>=0){
             say("A mentést betöltöttem. A kimerült kőlelőhelyek egyikén új kő jelent meg: "
