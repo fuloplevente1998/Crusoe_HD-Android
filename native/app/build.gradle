@@ -6,8 +6,8 @@ android {
         applicationId 'hu.crusoe.standalone'
         minSdk 26
         targetSdk 35
-        versionCode 3
-        versionName '0.3.0-native-alpha'
+        versionCode 4
+        versionName '0.3.1-native-alpha'
     }
     compileOptions { sourceCompatibility JavaVersion.VERSION_21; targetCompatibility JavaVersion.VERSION_21 }
     testOptions { unitTests {

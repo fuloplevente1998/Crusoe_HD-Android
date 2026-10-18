@@ -60,6 +60,21 @@ public class GameActivityTest {
         assertTrue(e.x>before+.2);
         assertFalse(a.getPackageManager().getPackageInfo(a.getPackageName(),0).requestedPermissions!=null);
     }
+    @Test public void mapTapRouteSurvivesReturningToGameAndStartsWalking() {
+        GameActivity a=create();a.start(false);GameEngine e=a.engine;
+        outer:for(int yy=1;yy<179;yy++)for(int xx=1;xx<177;xx++)if(e.passable(xx,yy)&&e.passable(xx+1,yy)){e.x=xx+.5f;e.y=yy+.5f;break outer;}
+        float before=e.x;int tx=(int)e.x+1,ty=(int)e.y;
+        a.gameView.screen=GameView.MAP;render(a,720,1280);
+        float mx=24+(tx+.5f)/180*672,my=130+(ty+.5f)/180*672;
+        long now=android.os.SystemClock.uptimeMillis();
+        a.gameView.onTouchEvent(MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,mx,my,0));
+        a.gameView.onTouchEvent(MotionEvent.obtain(now,now+20,MotionEvent.ACTION_UP,mx,my,0));
+        assertEquals(GameView.WORLD,a.gameView.screen);assertFalse(e.route.isEmpty());
+        render(a,720,1280); // First frame has delta=0 after leaving the map.
+        assertFalse(e.route.isEmpty());
+        for(int n=0;n<8;n++){a.gameView.lastFrame=System.nanoTime()-50_000_000;render(a,720,1280);}
+        assertTrue(e.x>before+.2);
+    }
     @Test public void nativeSaveLoadsThroughContinueAction()throws Exception {
         GameActivity a=create();a.start(false);a.engine.inventory[76]=1;a.engine.food=63;a.save();
         assertTrue(a.hasSave());a.engine.inventory[76]=0;a.start(true);

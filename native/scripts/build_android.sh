@@ -10,5 +10,5 @@ done
 ./gradlew --no-daemon --console=plain testDebugUnitTest assembleDebug
 bash scripts/test_engine.sh
 mkdir -p artifacts
-cp app/build/outputs/apk/debug/app-debug.apk artifacts/Crusoe-Native-0.3.apk
-sha256sum artifacts/Crusoe-Native-0.3.apk
+cp app/build/outputs/apk/debug/app-debug.apk artifacts/Crusoe-Native-0.3.1.apk
+sha256sum artifacts/Crusoe-Native-0.3.1.apk

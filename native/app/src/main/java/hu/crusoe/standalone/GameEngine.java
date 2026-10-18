@@ -42,11 +42,15 @@ public final class GameEngine {
     public void stop(){route.clear();walking=false;}
     public void update(float delta,float joyX,float joyY){
         float dt=Math.max(0,Math.min(.1f,delta));walking=false;
+        if(dt==0)return; // A fresh display frame must not cancel a pending route.
         float dx=joyX,dy=joyY;
         if(Math.hypot(dx,dy)>.12){route.clear();}
         else if(!route.isEmpty()){
-            int next=route.peek();dx=next%180+.5f-x;dy=next/180+.5f-y;
-            if(Math.hypot(dx,dy)<.12){x=next%180+.5f;y=next/180+.5f;route.remove();dx=dy=0;}
+            while(!route.isEmpty()){
+                int next=route.peek();dx=next%180+.5f-x;dy=next/180+.5f-y;
+                if(Math.hypot(dx,dy)>=.015)break;
+                x=next%180+.5f;y=next/180+.5f;route.remove();dx=dy=0;
+            }
         }else{dx=dy=0;}
         float length=(float)Math.hypot(dx,dy);
         if(length>.01){

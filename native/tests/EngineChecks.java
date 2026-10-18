@@ -67,7 +67,10 @@ public final class EngineChecks {
         byte[] bytes=Files.readAllBytes(file.toPath());bytes[200]^=1;Files.write(file.toPath(),bytes);
         int[] before=restored.inventory.clone();float x=restored.x;
         try{restored.load(file);throw new AssertionError("Corrupt save accepted");}catch(IOException expected){check(restored.x==x&&Arrays.equals(before,restored.inventory),"Corrupt save is rejected without partial state changes");}
-        float energy=e.energy; e.update(0,0,0);check(e.energy==energy,"Zero-time frame cannot advance survival state");
+        float energy=e.energy;
+        int near=reachable(e,8);e.navigate(near%180,near/180);int pending=e.route.size();
+        e.update(0,0,0);check(e.energy==energy,"Zero-time frame cannot advance survival state");
+        check(pending>0&&e.route.size()==pending,"First zero-time display frame preserves the requested path");
         file.delete();System.out.println("Engine checks passed: "+passed);
     }
 }

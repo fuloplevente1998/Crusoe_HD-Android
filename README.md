@@ -4,7 +4,7 @@ Ez az ág az önálló Android-játék **első, 0.3-as alpha-változatát** tart
 
 A projekt, a reprodukció és a pontos korlátok a [native/README.md](native/README.md) fájlban találhatók. A teljes eredeti küldetéslánc, minijátékok, állati ellenfelek, árapály és befejezés átültetése még hátravan. A korábbi emulátoros kísérlet külön, a `feat/hd-renderer-v01` ágon és PR #2-ben marad meg.
 
-Helyben ellenőrizve: mind az öt eredeti térképréteg bájtpontos betöltése, 255 motorfeltétel (beleértve mind a 45 receptet), öt Android/Skia felületi teszt és sikeres önálló APK-fordítás. Fizikai telefonos teljesítményteszt még nincs. Az APK nem tartalmaz Java ME- vagy J2ME Loader-osztályt.
+Helyben ellenőrizve: mind az öt eredeti térképréteg bájtpontos betöltése, 256 motorfeltétel (beleértve mind a 45 receptet), hat Android/Skia felületi teszt és sikeres önálló APK-fordítás. Fizikai telefonos teljesítményteszt még nincs. Az APK nem tartalmaz Java ME- vagy J2ME Loader-osztályt.
 
 ## Development rules
 
