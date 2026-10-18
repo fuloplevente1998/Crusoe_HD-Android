@@ -34,5 +34,12 @@
   ],
   "architecture_choice_pending": false,
   "important": "A native rewrite and an original game bundled with an internal Java ME compatibility layer are different deliverables. Neither is established by the previous emulator APK.",
-  "chosen_architecture": "Own native Android game engine, no Java ME compatibility runtime"
+  "chosen_architecture": "Own native Android game engine, no Java ME compatibility runtime",
+  "backlog": {
+    "baseline_version": "0.6.0-native-alpha",
+    "baseline_commit": "4d88a00d69547fe2e63db86ba180cbd8d7e7bf70",
+    "document": "ROADMAP.md",
+    "tracking_issue": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/4",
+    "reviewed_on": "2026-10-18"
+  }
 }

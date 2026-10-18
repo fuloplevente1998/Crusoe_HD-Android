@@ -1,0 +1,291 @@
+{
+  "baseline_version": "0.6.0-native-alpha",
+  "baseline_commit": "4d88a00d69547fe2e63db86ba180cbd8d7e7bf70",
+  "reviewed_on": "2026-10-18",
+  "tracking_issue": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/4",
+  "status_authority": "GitHub issues; this file is the baseline snapshot",
+  "tasks": [
+    {
+      "id": "N01",
+      "priority": "P0",
+      "title": "Eredeti előrehaladás feltárása és történeti/naplóállapotok",
+      "status": "hiányos / részben feltárandó",
+      "current": "A 13 bevezető esemény és az „Út a késhez” segítség működik. Nincs az eredeti teljes végigjátszásával igazolt előrehaladási állapotmodell. A 13 esemény nem igazol önmagában egy külön küldetésrendszert.",
+      "work": [
+        "Feltárni az eredeti kötelező előrehaladási, tárgy-, hely-, idő- és befejezési feltételeket; a bizonyított szabályokat elkülöníteni a feltételezésektől.",
+        "Elkészíteni a kötelező útvonal és az opcionális felfedezés függőségi leírását. Csak az eredetiben létező történeti/küldetésállapotok kerüljenek át.",
+        "A releváns állapotokat, naplóbejegyzéseket és egyszeri eseményeket a natív motorhoz kötni."
+      ],
+      "accept": [
+        "Minden kötelező átmenethez dokumentált eredeti megfigyelés vagy szabály tartozik, az ismeretlen részek külön látszanak.",
+        "Az események megfelelő feltételnél és egyszer történnek meg; visszatöltés után is helyesek.",
+        "A teljes kötelező útvonalhoz van végigjátszási ellenőrzőlista, kezdet és igazolt befejezési feltételek."
+      ],
+      "depends": [],
+      "issue_number": 5,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/5",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N02",
+      "priority": "P0",
+      "title": "Árapály, időjárás és a bejárható területek dinamikája",
+      "status": "hiányzik; az idő csak egyszerűsített",
+      "current": "Az öt eredeti térképréteg pontos, de a passability statikus. Van egyszerű óra/napszak és éjszakai színezés, az eredeti árapály/időjárás szabályai nélkül.",
+      "work": [
+        "Feltárni és átültetni az eredeti apály/dagály időzítését, víz-/terepváltozásait és kapcsolódó veszélyeit.",
+        "Az útkeresést, ütközést és a már kijelölt útvonalat a változó bejárhatósághoz kötni.",
+        "Időjárás/napszak jelzés és az eredeti játékmeneti hatások megvalósítása, ahol az eredetiben bizonyítottak."
+      ],
+      "accept": [
+        "Konkrét eredeti átkelőknél az apály valóban megnyitja, a dagály lezárja az utat.",
+        "Árapályváltás közben sem lehet érvénytelen útvonalon átmenni vagy helyreállíthatatlan helyzetbe kerülni a natív motor hibája miatt.",
+        "Mentés/visszatöltés után az idő, árapály, időjárás és bejárhatóság konzisztens."
+      ],
+      "depends": [
+        "N01",
+        "N10"
+      ],
+      "issue_number": 7,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/7",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N03",
+      "priority": "P0",
+      "title": "Speciális tárgyhasználat, tutaj/hajózás és az eredeti befejezés",
+      "status": "részben hiányzik",
+      "current": "Roncs/tutaj/hajó receptek léteznek; a hajó/tutaj használata még „nem érhető el” üzenetet ad. Az általános tárgyeltávolítás nem bizonyítja az összes speciális interakció helyességét.",
+      "work": [
+        "Ellenőrizni és átültetni a szikla/óriásrönk és más akadályok, különleges eszközök és területnyitó műveletek tényleges szabályait, beleértve a fogyó eszközöket.",
+        "Megvalósítani a tutaj használatát, a vízi bejárhatóságot és az eredeti helyhez/állapothoz kötött közlekedést.",
+        "A kalózhajó helyreállítását az eredeti felszerelés- és állapotfeltételekhez, majd az igazolt menekülés/befejezéshez kötni."
+      ],
+      "accept": [
+        "Minden kötelező területnyitás és vízi útvonal játékból elérhető, tesztkészlet vagy teleport nélkül.",
+        "Hiányzó követelmény esetén érthető visszajelzés van és nem fogy részlegesen a készlet.",
+        "Az eredeti kötelező útvonal a kezdőparttól a győzelemig végigjátszható; a győzelem állapota menthető."
+      ],
+      "depends": [
+        "N01",
+        "N02",
+        "N05",
+        "N10"
+      ],
+      "issue_number": 11,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/11",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N04",
+      "priority": "P0",
+      "title": "Túlélési értékek, táplálkozás, pihenés és halálállapot",
+      "status": "egyszerűsített; halálállapot hiányzik",
+      "current": "Négy közelítő érték (élet/élelem/víz/erő) és fix nyolcórás pihenés működik. A tárgyoszlopok teljes jelentése és az eredeti túlélési viselkedés nincs igazolva. A nulla élet jelenleg nem indít teljes game-over folyamatot.",
+      "work": [
+        "Az eredeti éhség, szomjúság, energia/erő, morál, súly és kapcsolódó értékek pontos jelentését és változását feltárni; nem azonosítani őket automatikusan a mostani négy mezővel.",
+        "A főzés/fogyasztás, mérgezés, tábori pihenés/alvás és az eszköz-/építményfeltételek eredeti szabályait átültetni.",
+        "Megvalósítani a bizonyított halál/vesztés feltételeket és a játék vége/újrakezdés/folytatás következetes kezelését."
+      ],
+      "accept": [
+        "Konkrét eredeti étel-, mérgezési-, pihenési- és kimerülési esetek összehasonlítható eredményt adnak.",
+        "Az élet elfogyása után nem folytatható korlátlanul az aktív játék.",
+        "Sikertelen fogyasztás nem veszít tárgyat; a játék vége és mentés együtt is ellenőrzött."
+      ],
+      "depends": [
+        "N01",
+        "N10"
+      ],
+      "issue_number": 8,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/8",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N05",
+      "priority": "P1",
+      "title": "Építés, műhelyek, ruházat és tábori tárolás teljes működése",
+      "status": "részben kész",
+      "current": "A 45 recept költség/eszköz/helyfeltétele külön ellenőrzött. Az építményelhelyezés szabad szomszédos cellát választ, több elkészült tárgy használati hatása, a ruhák felvétele és a tábori készletkezelés hiányos.",
+      "work": [
+        "Az eredeti építési helyek, táborfejlesztések, műhelyek és kész építmények tényleges használatát átültetni.",
+        "Ruházat felvétele/levétele, felszerelési helyek és a bizonyított védelmi/túlélési hatások.",
+        "Ház/tábor tároló, be- és kipakolás, kapacitás/súly vagy más korlátok az eredeti szabályai szerint."
+      ],
+      "accept": [
+        "Minden recept eredménye a megfelelő helyen használható; a puszta létrehozás nem számít teljes működésnek.",
+        "A viselt ruha külön látszik a tarisznyában lévő ruhától, hatásai és mentése ellenőrzöttek.",
+        "Tárolás, készítés, felvétel/levétel nem dupláz és nem tüntet el készletet."
+      ],
+      "depends": [
+        "N01",
+        "N04",
+        "N10"
+      ],
+      "issue_number": 9,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/9",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N06",
+      "priority": "P1",
+      "title": "Állatok szigetbeli mozgása, veszélyei és harca",
+      "status": "hiányzik / részben alapozott",
+      "current": "Az állatok a világban tárgycellák. Van egyállatos vadászati minijáték és néhány sikertelenségi sérülés, de nincs teljes szigetbeli állat-AI vagy ruházatfüggő védelem.",
+      "work": [
+        "Átültetni a bizonyított mozgás, élőhely, észlelés, menekülés/üldözés és támadás viselkedéseit.",
+        "A veszélyes állatok sérülését, a ruházati védelmet és a túlélési/halálállapotot összekötni.",
+        "Az eredeti több közeli állatot kezelő vadászatot összehangolni a világban lévő egyedekkel."
+      ],
+      "accept": [
+        "Konkrét állatfajok eredetihez viszonyított viselkedése dokumentált és ellenőrizhető.",
+        "Állat nem megy érvénytelen terepre és nem ad többször zsákmányt ugyanazért az egyedért.",
+        "Félbeszakítás, vadászat és mentés után is konzisztens a világban élő/eltávolított egyedek állapota."
+      ],
+      "depends": [
+        "N02",
+        "N04",
+        "N05",
+        "N07",
+        "N10"
+      ],
+      "issue_number": 12,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/12",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N07",
+      "priority": "P1",
+      "title": "Minijátékok pontosítása az eredeti fizikához és részletszabályokhoz",
+      "status": "játszható alap kész; egyezés részleges",
+      "current": "A 0.6.0 érintőkaros vadászatot/horgászatot, hálózást és két találatos kókuszdobálást tartalmaz. Az eredetivel nem egyező részletek a planning/MINIGAMES.md fájlban szerepelnek.",
+      "work": [
+        "Az eredeti lövedék-/horogmozgás, célméretek, időzítés és erőnléti/morálhatások összehasonlítása és szükséges átültetése.",
+        "A bot 45 másodperces pótszabályának, a háló halhullámainak, a kókuszcélpontok elrendezésének és a belső pálmaváltozat-feltételnek a rendezése.",
+        "Kő újrahasználati/kopási számláló, költségelszámolás, eredmény utáni folyamat és többállatos vadászat; az eredeti furcsa jutalomazonosítók bizonyított ellenőrzése.",
+        "A kért folyamatos, kétujjas érintőkaros vezérlés megőrzése, az esetleges tudatos modernizálási eltérések dokumentálásával."
+      ],
+      "accept": [
+        "Minden felsorolt eltérés igazoltan javítva vagy konkrétan dokumentált, tudatos eltérésként kezelve.",
+        "Az eszköz/csali/kő/nyíl és jutalom sikernél, hibánál, megszakításnál és visszatöltésnél következetes.",
+        "Érintőkar + akciógomb együtt használható, elengedésből/megszakításból nem lesz véletlen lövés vagy jutalom."
+      ],
+      "depends": [
+        "N01",
+        "N04",
+        "N10"
+      ],
+      "issue_number": 10,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/10",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N08",
+      "priority": "P1",
+      "title": "Grafikai hozzárendelések, méretek és animációk véglegesítése",
+      "status": "részben kész",
+      "current": "Nyolc generált grafikai bemenet, közös ItemArt, külön kagyló/gyümölcs/szerszámikonok és négyirányú járás működik. Néhány állat/dekoráció/építmény még közös vagy eltérő stílusú képet használ.",
+      "work": [
+        "A teljes 120 tárgybejegyzés és az összes használt dekoráció/terepelem képét, méretét és horgonyzását végigellenőrizni az eredeti alapján; a helykitöltőket és téves társításokat cserélni.",
+        "A karakter-, eszközhasználati-, állat-, építési- és harci animációkat a játékmenettel összekötni; atlaszáthallás, átlátszósági szélek és takarás javítása.",
+        "A natív tarisznya/készítés/napló és a HUD egységes megjelenése, olvashatósága különböző telefonarányokon."
+      ],
+      "accept": [
+        "A használható tárgyak és fontos állatfajok felismerhetők; nincs félrevezető általános kókusz/láda/papagáj-helyettesítés.",
+        "A kezdőpart, sűrű növényzet, vízpart és minijátékok képi ellenőrzése dokumentált több képarányon.",
+        "Az ikonok a pályán, tarisznyában és recepteknél ugyanazt a tárgyat jelölik; az animáció nem takarja el a szükséges interakciót."
+      ],
+      "depends": [
+        "N03",
+        "N05",
+        "N06",
+        "N07"
+      ],
+      "issue_number": 13,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/13",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N09",
+      "priority": "P1",
+      "title": "Teljes magyarítás, napló és helyzetfüggő játékosi visszajelzés",
+      "status": "részben kész",
+      "current": "A fő felületek és tárgynevek magyarok. Több eredeti tárgyleírás és bevezető szöveg angol; a napló elsősorban a bevezető eseményeket mutatja.",
+      "work": [
+        "A felhasznált eredeti leírások, bevezetők, történeti szövegek, állapotok és hibajelzések teljes magyarítása, egységes tárgy-/eszköznevekkel.",
+        "A naplóban az igazolt előrehaladást és a jelenleg szükséges feltételeket következetesen megjeleníteni, kitalált küldetések hozzáadása nélkül.",
+        "Hiányzó eszköz/hely/csali, árapály, veszély, pihenés és befejezés érthető visszajelzéseinek ellenőrzése."
+      ],
+      "accept": [
+        "A szokásos játékútvonalon nincs véletlen angol szöveg vagy félrevezető hiányjelzés.",
+        "A hosszú magyar szövegek, mennyiségek és ékezetek a támogatott képarányokon olvashatók, nem lógnak ki.",
+        "A napló és visszajelzés a mentett állapotból helyesen áll helyre."
+      ],
+      "depends": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07"
+      ],
+      "issue_number": 14,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/14",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N10",
+      "priority": "P0",
+      "title": "Mentések bővítése és migráció az új világállapotokhoz",
+      "status": "alap kész; az új rendszerekhez bővítendő",
+      "current": "CRC-vel védett atomikus mentés működik. A 0.3.1/0.5.0 motorral készült helyi mentések betöltése tesztelt. A formátum még nem tárol teljes történeti, árapály-, ruházat-, tároló- és állatállapotot.",
+      "work": [
+        "Verziózott bővítési/migrációs tervet készíteni a következő állapotok bevezetése előtt.",
+        "Megőrizni a natív alpha mentéseinek betölthetőségét és a csomagnév/aláíró folytonosságát; az új mezők alapértékeit tudatosan megadni.",
+        "Sérült/megszakított mentés, folyamatkilövés, háttérbe helyezés, befejezett/függő jutalom és frissítés közbeni állapotkezelés rendezése."
+      ],
+      "accept": [
+        "Rögzített korábbi mentésekkel automatikus visszafelé kompatibilitási vizsgálat fut, ha a helyi tesztbemenetek rendelkezésre állnak.",
+        "Mentés/visszatöltés minden új rendszer releváns állapotát megőrzi; nincs részleges alkalmazás vagy készlet/jutalomduplázás.",
+        "Állapot- és sémafrissítéshez leírt migráció tartozik, a privát aláírókulcs nem kerül a repóba."
+      ],
+      "depends": [],
+      "issue_number": 6,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/6",
+      "issue_state_at_snapshot": "open"
+    },
+    {
+      "id": "N11",
+      "priority": "P1",
+      "title": "Telefonos végigjátszás, teljesítménymérés és kiadási ellenőrzés",
+      "status": "hiányzik; helyi motor/UI tesztek vannak",
+      "current": "A 0.6.0 helyben 13 Android/Skia teszten és 307 motorfeltételen ment át, két helyi régi mentési bemenettel. Ez nem teljes végigjátszás és nem fizikai telefonos FPS-/RAM-mérés.",
+      "work": [
+        "A kötelező eredeti útvonalat telepített APK-n, csalás és előkészített készlet nélkül végigjátszani; a blokkolókat visszakötni a megfelelő feladathoz.",
+        "Valós Android 8+ eszközökön, eltérő képaránnyal és érintési/navigációs beállításokkal ellenőrizni az irányítást, olvashatóságot és életciklust.",
+        "Mért FPS/képkockaidő, memória, hosszabb játék, szünet/visszatérés, frissítés és mentésvesztés ellenőrzése; az Android 8 szoftveres rajzolási visszaesés külön vizsgálata.",
+        "GitHub-tesztkiadások, ellenőrzőösszeg, telepíthetőség és reprodukálható helyi build dokumentálása; stabil kiadás csak a bizonyított állapotot állítsa."
+      ],
+      "accept": [
+        "Legalább egy dokumentált teljes végigjátszás eljut a kezdőparttól az eredeti befejezésig, nyitott blokkoló nélkül.",
+        "A tesztelt telefonok/Android-verziók és tényleges mérési eredmények szerepelnek a jegyzőkönyvben.",
+        "A frissítés megőrzi a mentést, a kiadott APK visszatöltése/aláírása/ellenőrzőösszege ellenőrzött."
+      ],
+      "depends": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10"
+      ],
+      "issue_number": 15,
+      "issue_url": "https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/15",
+      "issue_state_at_snapshot": "open"
+    }
+  ]
+}

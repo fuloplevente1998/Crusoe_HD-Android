@@ -38,6 +38,8 @@ A DEX-vizsgálat igazolja a saját `GameActivity` jelenlétét, a Java ME- és J
 
 ## Még hiányzik
 
+A prioritásos, elfogadási feltételekkel rögzített teljes lista: [ROADMAP.md](planning/ROADMAP.md). Élő követés: [összesítő issue #4](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/4).
+
 A teljes eredeti küldetéslánc és történeti állapotgép; a minijátékok pontos mozgása, időzítése és összes mellékhatása; az állatok szigetbeli mozgása és teljes harca; az időjárás és árapály szabályai; a sziget további területeit megnyitó speciális interakciók és a befejezés. A 13 kinyert bevezető esemény nem az összes küldetés.
 
 A tereprétegek adatai pontosak, de a dekorációk és tárgyak grafikai hozzárendelése még közelítő; több tárgy közös illusztrációt használ. A túlélési/időmodell és az építés helyezése jelenleg egyszerűsített, az eredetihez való viselkedési egyezésük nincs igazolva. Egyes eredeti leírások és bevezető szövegek még angolul jelennek meg. A grafika és az animáció sem végleges.

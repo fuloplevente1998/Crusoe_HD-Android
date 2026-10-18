@@ -13,6 +13,10 @@ Helyben ellenőrizve: 13 Android/Skia felületi teszt és 307 motorfeltétel, a 
 - [Generált grafikák](native/app/src/main/assets/art) és [előnézetek](native/docs/ARTWORK.md)
 - [Minijátékok eredetihez viszonyított eltérései](native/planning/MINIGAMES.md)
 
+## Hátralévő fejlesztések
+
+[Részletes ROADMAP](native/planning/ROADMAP.md) · [GitHub-összesítő #4](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/4). Tizenegy részfeladat P0/P1 prioritással, jelenlegi állapottal, függőségekkel és ellenőrizhető befejezési feltételekkel.
+
 ## Development rules
 
 1. Preserve original gameplay rules when porting; explicitly document behavior that is still simplified or absent.
