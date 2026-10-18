@@ -189,6 +189,25 @@ public final class EngineChecks {
             int sameDay=0;
             for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)sameDay++;
             check(sameDay==2,"Further updates on same day do not duplicate stones");
+            // The real rest() path advances eight hours; overnight rest must
+            // share the same resource renewal as normal real-time ticks.
+            repeated.hour=19.0f;
+            int beforeRestDay=repeated.day;
+            java.lang.reflect.Method rest=GameEngine.class.getDeclaredMethod("rest",int.class);
+            rest.setAccessible(true);
+            rest.invoke(repeated,0);
+            int afterRestStones=0;
+            for(int i=0;i<repeated.objects.length;i++)
+                if(repeated.objectAt(i)==3)afterRestStones++;
+            check(repeated.day==beforeRestDay+1&&afterRestStones==3,
+                  "Sleeping through midnight triggers stone regrowth exactly once");
+            rest.invoke(repeated,0);
+            int nextNightStones=0;
+            for(int i=0;i<repeated.objects.length;i++)
+                if(repeated.objectAt(i)==3)nextNightStones++;
+            check(repeated.day==beforeRestDay+1&&nextNightStones==3,
+                  "Second sleep on the same day must not duplicate stones");
+
         } finally {
             saved.delete();
         }
