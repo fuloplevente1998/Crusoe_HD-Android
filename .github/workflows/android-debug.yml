@@ -49,6 +49,9 @@ jobs:
           # Upstream currently requests API 37; public SDK repository only exposes stable 36.
           sed -i "s/COMPILE_SDK = 37/COMPILE_SDK = 36/" loader/build.gradle
           grep -F "COMPILE_SDK = 36" loader/build.gradle
+          # ACRA 5.14.2 requires API 37; 5.13.1 targets Android API 36.
+          sed -i "s/ch.acra:acra-dialog:5.14.2/ch.acra:acra-dialog:5.13.1/" loader/app/build.gradle
+          grep -F "ch.acra:acra-dialog:5.13.1" loader/app/build.gradle
           echo "J2ME Loader commit: $(git -C loader rev-parse HEAD)"
 
       - name: Configure temporary CI signing credentials
