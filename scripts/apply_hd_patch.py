@@ -36,14 +36,14 @@ def replace_once(name: str, before: str, after: str) -> None:
 
 replace_once("Image.java",
     "\tprivate Bitmap bitmap;\n",
-    "\tprivate Bitmap bitmap;\n\tprivate int crusoeScale = 1;\n")
+    "\tprivate Bitmap bitmap;\n\tprivate int crusoeScale = 1;\n\tprivate String crusoeResourceName;\n")
 
 replace_once("Image.java",
     "\tpublic Bitmap getBitmap() {\n",
     """\t/** Backing pixels are larger than the emulated logical viewport. */
 \tstatic Image createCrusoeRenderTarget(int logicalWidth, int logicalHeight, int argb) {
 \t\t// Guard against oversized user-defined virtual screen dimensions.
-\t\tint scale = (long) logicalWidth * logicalHeight <= 480L * 800L ? CrusoeHD.SCALE : 1;
+\t\tint scale = CrusoeHD.isEnabled() && (long) logicalWidth * logicalHeight <= 360L * 640L\n\t\t\t\t? CrusoeHD.SCALE : 1;
 \t\tBitmap backing = Bitmap.createBitmap(logicalWidth * scale, logicalHeight * scale,
 \t\t\t\tBitmap.Config.ARGB_8888);
 \t\tif (argb != 0) backing.eraseColor(argb);
@@ -53,7 +53,7 @@ replace_once("Image.java",
 \t\tresult.crusoeScale = scale;
 \t\treturn result;
 \t}
-\tint getCrusoeScale() { return crusoeScale; }
+\tint getCrusoeScale() { return crusoeScale; }\n\tString getCrusoeResourceName() { return crusoeResourceName; }
 \tpublic Rect getCrusoeNativeBounds() {
 \t\treturn crusoeScale == 1 ? bounds : new Rect(0, 0,
 \t\t\t\tbounds.right * crusoeScale, bounds.bottom * crusoeScale);
@@ -61,6 +61,20 @@ replace_once("Image.java",
 
 \tpublic Bitmap getBitmap() {
 """)
+
+replace_once("Image.java",
+    """\t\tif (b == null) {
+\t\t\tthrow new IOException("Can't decode image: " + resname);
+\t\t}
+\t\treturn new Image(b);
+\t}""",
+    """\t\tif (b == null) {
+\t\t\tthrow new IOException("Can't decode image: " + resname);
+\t\t}
+\t\tImage result = new Image(b);
+\t\tresult.crusoeResourceName = resname;
+\t\treturn result;
+\t}""")
 
 replace_once("Image.java",
     "\t\tdst.getSingleGraphics().getCanvas().drawBitmap(bitmap, bounds, bounds, null);",
