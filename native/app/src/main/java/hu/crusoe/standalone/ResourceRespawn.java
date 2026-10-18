@@ -23,6 +23,29 @@ public final class ResourceRespawn {
         return false;
     }
 
+    /**
+     * Original game refreshes the item map at 04:00. This first-stage port
+     * restores the natural stone subset only, preserving anything currently
+     * occupying the original source site (e.g. crafted structures).
+     *
+     * @return number of newly restored stone tiles
+     */
+    public static int restoreOriginalStones(byte[] originalObjects, byte[] currentObjects,
+                                            float playerX, float playerY) {
+        checkMap(originalObjects);
+        checkMap(currentObjects);
+        final int playerIndex=(int)playerY*MAP_WIDTH+(int)playerX;
+        int count=0;
+        for(int i=0;i<MAP_TILES;i++){
+            if(i==playerIndex)continue;
+            if((originalObjects[i]&255)==STONE_MAP_VALUE&&currentObjects[i]==0){
+                currentObjects[i]=(byte)STONE_MAP_VALUE;
+                count++;
+            }
+        }
+        return count;
+    }
+
     /** Is a stone currently adjacent to a player-reachable walking cell? */
     public static boolean hasApproachableStone(byte[] currentObjects, boolean[] reachable) {
         checkMap(currentObjects);
