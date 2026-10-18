@@ -41,7 +41,42 @@ public final class GameEngine {
         boolean rock=r>=50||r==0||r==10||r==11||r==12||r==18||r==20||r==22||r==23||r==24||r==30||r==31||r==32||r==38||r>=41&&r<=47;
         return rock&&data.layers[2][i]==0&&objects[i]==0;
     }
+    private void advanceTime(float hours){
+        if(hours<=0)return;
+        float previousHour=hour;
+        // Original Java ME data.ad.s() reloads all eligible BIGislandObjects at 04:00,
+        // once while the in-game hour equals four; keep this clock boundary.
+        boolean crossesFour=previousHour<4
+                ? previousHour+hours>=4 : previousHour+hours>=28;
+        hour+=hours;
+        while(hour>=24){hour-=24;day++;}
+        if(crossesFour)ResourceRespawn.restoreOriginalResources(
+                data.layers[GameData.OBJECTS],objects,x,y);
+    }
     public void stop(){route.clear();walking=false;}
+    private int restoreReachableStone(boolean onlyIfNoApproachableStone){
+        int startX=(int)x,startY=(int)y;
+        if(!passable(startX,startY))return -1;
+        boolean[] reachable=new boolean[32400];
+        int[] queue=new int[32400];
+        int head=0,tail=0,start=startY*180+startX;
+        queue[tail++]=start;reachable[start]=true;
+        while(head<tail){
+            int at=queue[head++],cx=at%180,cy=at/180;
+            for(int n=0;n<4;n++){
+                int nx=cx+(n==0?1:n==1?-1:0),ny=cy+(n==2?1:n==3?-1:0);
+                if(nx<0||ny<0||nx>=180||ny>=180)continue;
+                int next=ny*180+nx;
+                if(!reachable[next]&&passable(nx,ny)){
+                    reachable[next]=true;queue[tail++]=next;
+                }
+            }
+        }
+        if(onlyIfNoApproachableStone&&ResourceRespawn.hasApproachableStone(objects,reachable))return -1;
+        return ResourceRespawn.restoreNearestStone(
+                data.layers[GameData.OBJECTS],objects,x,y,reachable);
+    }
+
     public void update(float delta,float joyX,float joyY){
         float dt=Math.max(0,Math.min(.1f,delta));walking=false;
         if(dt==0)return; // A fresh display frame must not cancel a pending route.
@@ -64,7 +99,7 @@ public final class GameEngine {
             if(Math.abs(dx)>Math.abs(dy))direction=dx<0?1:2;else direction=dy<0?3:0;
         }
         if(walking)animation+=dt*9;
-        hour+=dt/18f;if(hour>=24){hour-=24;day++;}
+        advanceTime(dt/18f);
         food=Math.max(0,food-dt*.035f);water=Math.max(0,water-dt*.05f);
         energy=Math.max(0,energy-dt*(walking?.025f:.005f));
         if(food<=0||water<=0)health=Math.max(0,health-dt*.05f);
@@ -123,7 +158,7 @@ public final class GameEngine {
         selected=-1;return "+1 "+item.name;
     }
     private String rest(int index){
-        hour+=8;if(hour>=24){hour-=24;day++;}energy=100;
+        advanceTime(8);energy=100;
         food=Math.max(0,food-8);water=Math.max(0,water-12);return "Megpihentél a táborban. Az erőd helyreállt.";
     }
     public boolean contextAvailable(int context){
@@ -259,6 +294,16 @@ public final class GameEngine {
         // Apply only after the complete save passed validation.
         x=nx;y=ny;hour=nh;day=nd;health=stats[0];food=stats[1];water=stats[2];energy=stats[3];
         System.arraycopy(inv,0,inventory,0,120);System.arraycopy(world,0,objects,0,32400);
-        seen.clear();seen.or(BitSet.valueOf(new long[]{flags}));selected=-1;harvest=null;stop();say("A mentést betöltöttem.");
+        seen.clear();seen.or(BitSet.valueOf(new long[]{flags}));selected=-1;harvest=null;stop();
+        // Save-v1 compatibility: salvage exhausted worlds without replacing the save,
+        // resetting inventory or inventing new stone locations.
+        int recovery=-1;
+        if(inventory[ResourceRespawn.STONE_ITEM_ID]==0){
+            recovery=restoreReachableStone(true);
+        }
+        if(recovery>=0){
+            say("A mentést betöltöttem. A kimerült kőlelőhelyek egyikén új kő jelent meg: "
+                    +(recovery%180+1)+", "+(recovery/180+1)+".");
+        }else say("A mentést betöltöttem.");
     }
 }

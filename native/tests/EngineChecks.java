@@ -136,6 +136,122 @@ public final class EngineChecks {
         for(int shot=0;shot<10;shot++){game.action();game.action();while(game.flying&&!game.finished)game.update(.1f);}
         check(game.finished&&!game.won&&game.attempts==10,"Coconut game stops after ten misses and ignores duplicate fire taps");
     }
+    static void stoneRespawnChecks()throws Exception {
+        GameEngine depleted=new GameEngine(data);
+        byte[] original=data.layers[GameData.OBJECTS];
+        int initial=0;
+        for(int i=0;i<depleted.objects.length;i++){
+            if((original[i]&255)==4){initial++;depleted.objects[i]=0;}
+        }
+        check(initial==54,"Original world has exactly 54 stone source sites");
+        depleted.inventory[3]=0;
+        depleted.day=3;depleted.hour=12.5f;
+        int[] originalInventory=depleted.inventory.clone();
+        float x=depleted.x,y=depleted.y;
+        File saved=Files.createTempFile("crusoe-exhausted-stones-",".dat").toFile();
+        try {
+            depleted.save(saved); // Existing v1 save layout, no migration/destruction.
+            int isolated=5*180+44; // Original rock deposit on the separated northern map.
+            check((original[isolated]&255)==4,"Remote stone source exists in original map");
+            depleted.objects[isolated]=4;
+            depleted.save(saved);
+            GameEngine isolatedRecovery=new GameEngine(data);
+            isolatedRecovery.load(saved);
+            int isolatedCount=0;
+            for(int i=0;i<isolatedRecovery.objects.length;i++)if(isolatedRecovery.objectAt(i)==3)isolatedCount++;
+            check(isolatedCount==2,"Save with only a distant, inaccessible stone recovers one locally");
+            depleted.objects[isolated]=0;
+            depleted.save(saved);
+            GameEngine recovered=new GameEngine(data);
+            recovered.load(saved);
+            int stones=0,source=-1;
+            for(int i=0;i<recovered.objects.length;i++)if(recovered.objectAt(i)==3){stones++;source=i;}
+            check(stones==1&&source>=0&&(original[source]&255)==4,
+                  "Legacy depleted save restores exactly one original stone source");
+            check(Arrays.equals(originalInventory,recovered.inventory)&&recovered.x==x&&recovered.y==y
+                      &&recovered.day==3&&recovered.hour==12.5f,
+                  "Rescue preserves inventory, player coordinates, game day and time");
+            check(recovered.notice.contains("kő"),"Recovery informs the player about restored stone");
+            recovered.save(saved);
+            GameEngine repeated=new GameEngine(data);
+            repeated.load(saved);
+            int afterReload=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)afterReload++;
+            check(afterReload==1,"Second load does not duplicate a restored stone");
+            repeated.hour=23.999f;
+            int beforeDay=repeated.day;
+            repeated.update(0.1f,0,0);
+            int atMidnight=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)atMidnight++;
+            check(repeated.day==beforeDay+1&&atMidnight==1,
+                  "Midnight changes the day but does not prematurely respawn stones");
+            // Exhaust every renewable kind, not only stone, before 04:00.
+            int[] renewableCodes={1,2,4,7,8,9,12,14,21,22,25,26,27,28,29,
+                    31,32,33,34,36,39,40,65,66,67,68,69,71,72,73,74,75,
+                    76,91,94,99};
+            boolean[] renewable=new boolean[256];
+            for(int code:renewableCodes)renewable[code]=true;
+            int depletedSources=0,occupiedSource=-1,oneOff=-1,animal=-1,placeholder=-1;
+            for(int i=0;i<repeated.objects.length;i++){
+                int code=original[i]&255;
+                if(renewable[code]){repeated.objects[i]=0;depletedSources++;}
+                if(code==9&&occupiedSource<0)occupiedSource=i;
+                if(code==77)oneOff=i;
+                if(code==5&&animal<0)animal=i;
+                if(code==96&&placeholder<0)placeholder=i;
+            }
+            check(depletedSources==1024,"Original map contains 1024 recurring deposits in 36 item categories");
+            check(occupiedSource>=0&&oneOff>=0&&animal>=0&&placeholder>=0,
+                  "Original world contains building, one-off, animal and placeholder regression sites");
+            repeated.objects[occupiedSource]=(byte)100; // Crafted object protects its tile.
+            repeated.objects[oneOff]=0;
+            repeated.objects[animal]=0;
+            repeated.objects[placeholder]=0;
+            repeated.hour=3.999f;
+            repeated.update(0.1f,0,0);
+            int restoredNatural=0;
+            for(int i=0;i<repeated.objects.length;i++)
+                if(renewable[original[i]&255]&&repeated.objects[i]==original[i])
+                    restoredNatural++;
+            check(restoredNatural==1023,"At 04:00 all 36 original renewable types return except a protected building site");
+            check(repeated.objects[occupiedSource]==(byte)100
+                    &&repeated.objects[oneOff]==0
+                    &&repeated.objects[animal]==0
+                    &&repeated.objects[placeholder]==0,
+                  "Daily map refresh preserves built structures, unique pickups, animals and placeholders");
+            int atFour=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)atFour++;
+            check(atFour==54,"Original 04:00 refresh replenishes all 54 vacant stone source tiles");
+            // Collect three stones and check another morning does not duplicate inventory.
+            int spent=0;
+            for(int i=0;i<repeated.objects.length&&spent<3;i++)
+                if(repeated.objectAt(i)==3&&i!=(int)repeated.y*180+(int)repeated.x){
+                    repeated.objects[i]=0;spent++;
+                }
+            check(spent==3,"Stone source depletion can be simulated without moving the player");
+            repeated.hour=23.0f;
+            int beforeRestDay=repeated.day;
+            java.lang.reflect.Method rest=GameEngine.class.getDeclaredMethod("rest",int.class);
+            rest.setAccessible(true);
+            rest.invoke(repeated,0);
+            int afterRest=0;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3)afterRest++;
+            check(repeated.day==beforeRestDay+1&&afterRest==54,
+                  "Sleeping across 04:00 replenishes stones through the same clock logic");
+            // A second sleep stays within the new day; no early refresh is allowed.
+            int removed=-1;
+            for(int i=0;i<repeated.objects.length;i++)if(repeated.objectAt(i)==3){
+                repeated.objects[i]=0;removed=i;break;
+            }
+            rest.invoke(repeated,0);
+            check(removed>=0&&repeated.objects[removed]==0,
+                  "Same-day rest before next 04:00 does not refresh resource sites");
+
+        } finally {
+            saved.delete();
+        }
+    }
+
     public static void main(String[] args)throws Exception {
         data=new GameData(new FileInputStream(args[0]));
         check(data.items.length==120&&data.recipes.length==45,"Complete original item and recipe catalog");
@@ -188,6 +304,6 @@ public final class EngineChecks {
         int near=reachable(e,8);e.navigate(near%180,near/180);int pending=e.route.size();
         e.update(0,0,0);check(e.energy==energy,"Zero-time frame cannot advance survival state");
         check(pending>0&&e.route.size()==pending,"First zero-time display frame preserves the requested path");
-        file.delete();harvestChecks();joystickAndCoconuts();System.out.println("Engine checks passed: "+passed);
+        file.delete();stoneRespawnChecks();harvestChecks();joystickAndCoconuts();System.out.println("Engine checks passed: "+passed);
     }
 }
