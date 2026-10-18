@@ -30,3 +30,22 @@
 ## Test policy
 
 Never publish the original commercial JAR/JAD, disassembled game classes, proprietary PNGs, or game data layers to this public repo or Actions artifacts. If a build cannot be reproduced without those inputs, provide a separate local test procedure and do not label it a distributable game APK.
+
+
+## 2026-10-18 – next iteration: resource recognition and aspect-safe drawing
+
+- The game's original loader can use both `Image.createImage(String)` and `Image.createImage(byte[],offset,length)`; the renderer now accepts the original 348×36 atlas identified by **either its exact resource path or five verified opaque-pixel signatures**.
+- The five expected pixel signatures were compared to the owner's local original JAR, with **5/5 exact matches**.
+- The graphics patch now resets the backing Canvas matrix between redraw passes to prevent cumulative 4× scaling.
+- Modern sprite draw size preserves source aspect ratio and the old logical position/footpoint; the art can occupy more horizontal space than the original (approx. **1.79–2.34×** wider for these 20 frames). This is an intentional visual tradeoff and needs a phone test before approving.
+- Offline resource audit confirmed the original 20 animation slots, exact atlas dimensions, 20 named modern PNGs, and valid crop rectangles. **All 20 modern inputs are square-like**, so drawing them into the original narrow 15–19-pixel-wide source rectangle would visibly distort them.
+- `scripts/audit_local_assets.py`: verify the owner's original and modern resource JAR files locally, without uploading them.
+- `scripts/build_hd_debug.sh`: reproducible, isolated HD emulator debug build instructions, using the working upstream commit, API 36, and ACRA 5.13.1. **This build script has not yet been run in an Android SDK environment**. The working GitHub Action is still the baseline, not HD.
+
+### Still blocking
+
+1. Compile `scripts/build_hd_debug.sh` in an Android SDK/NDK environment and confirm the modified source compiles.
+2. Verify resource loading and 4× rendering in Android after importing the owner's HD-resource JAR.
+3. Confirm no stretched sprites, clipped oversized characters, broken clipping, or frame-rate regressions, especially while scrolling and opening menus.
+4. Confirm snapshots, character animation direction, item interactions, saves and portrait touch controls remain functional.
+5. Keep this PR **draft**, separate from `develop`, until the actual HD APK passes device tests.
