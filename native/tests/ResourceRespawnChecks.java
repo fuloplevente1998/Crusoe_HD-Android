@@ -22,6 +22,14 @@ public final class ResourceRespawnChecks {
         check(world[occupied]==99&&world[other]==9,"Preserve crafted and unrelated objects");
         check(world[near]==0&&world[far]==4,"Restore one and only one natural stone");
         check(ResourceRespawn.containsStone(world),"Restored stone is collectible");
+        check(ResourceRespawn.hasApproachableStone(world,reachable),
+              "A stone beside a reachable walking tile is usable");
+        boolean[] isolated=new boolean[32400];
+        check(!ResourceRespawn.hasApproachableStone(world,isolated),
+              "Global stone count does not prove local access");
+        isolated[far-1]=true;
+        check(ResourceRespawn.hasApproachableStone(world,isolated),
+              "One reachable neighbor makes a stone approachable");
         int next=ResourceRespawn.restoreNearestStone(original,world,10.5f,10.5f,reachable);
         check(next==-1,"No more eligible stone deposits when remaining sites are protected");
         world[far]=0;reachable[far]=false;
