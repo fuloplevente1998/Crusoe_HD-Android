@@ -36,11 +36,15 @@ A 0.6.0 két további felületi vizsgálata kétujjas célzás/lövés, megszak�
 
 A DEX-vizsgálat igazolja a saját `GameActivity` jelenlétét, a Java ME- és J2ME Loader-osztályok hiányát. Az APK nem tartalmaz JAR/JAD fájlt, hálózati vagy tárhelyengedélyt nem kér. Az aláírás ellenőrzése sikeres.
 
-## Ismert P0 blokkoló: a kövek és természetes tárgyak nem termelődnek újra
+## Erőforrások naponta 04:00-kor – N12 fejlesztés
 
-A 0.6.0-s natív alfában a felvehető erőforrás a felszedéskor kikerül a pályáról, de egyelőre **nem regenerálódik**. Felhasználói visszajelzés alapján már az összes kő elfogyott, ezért a játék továbbhaladása blokkolódott; az eredeti Java ME-játékban viszont a világ gyűjthető tárgyai újra megjelentek.
+A korábbi **0.6.0-s alpha** változatban a felszedett erőforrások eltűntek a pályáról, és nem tértek vissza: a kövek elfogyása már játékfolyamatot blokkoló hibát okozott.
 
-**Az eredeti respawn-időzítés és jogosult tárgytípusok még feltárandók.** A [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17) már tartalmaz egy a hajnali 04:00-s eredeti kő-utánpótlást és a beragadt mentések elérhető kőlelőhelyet visszaállító javítását, de a teljes APK-fordítás és telefonos teszt még hátravan. A [P0 N12 / #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) feladat megköveteli a meglévő kőhiányos mentés helyreállítását új játék kezdése nélkül, a történeti és épített objektumok duplikálásának elkerülésével. Fejlesztési részletek: [ROADMAP.md](planning/ROADMAP.md).
+A [Draft PR #17](https://github.com/fuloplevente1998/Crusoe_HD-Android/pull/17) az **eredeti Java ME-kódban igazolt hajnali 04:00-s** tárgytérkép-frissítést valósítja meg az összes **36 eredeti, természetes és rendszeresen gyűjthető tárgykódra**, összesen **1 024 eredeti lelőhelyen**. Nem csak a kő: ágak, liánok, füvek, farönkök, gyümölcsök, gombák, kagylók, giliszták, gyapot és más természeti anyagok is visszatérnek. Az egyedi tárgyak, az eredeti állatszűrő szerinti dinamikus entitások, a helykitöltők és a megépített tárgyak nem duplikálódnak.
+
+A régi, **kő nélküli mentések megmentése** is része a PR-nek; a mentési formátum változatlan. A [P0 N12 / #16](https://github.com/fuloplevente1998/Crusoe_HD-Android/issues/16) feladat addig nyitva marad, amíg a meglévő telefonos mentés folytatását nem igazoltuk.
+
+**Ellenőrzés:** 22/22 erőforrás-egységteszt, **321 teljes natív motorfeltétel**, és sikeres Android CI fordítás a [#39142615210 futásban](https://github.com/fuloplevente1998/Crusoe_HD-Android/actions/runs/39142615210). A felhasználó saját alkalmazására **Codexben, a korábbi privát keystore-ral** fordítjuk a valódi frissítő APK-t, nem külön települő tesztappként. [Codex átadás](planning/CODEX_UPDATE_HANDOFF.md) · [Részletes forrásvizsgálat](planning/RESPAWN_N12.md).
 
 ## Még hiányzik
 
