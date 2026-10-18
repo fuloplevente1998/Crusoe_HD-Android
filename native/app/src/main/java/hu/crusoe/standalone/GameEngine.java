@@ -41,6 +41,15 @@ public final class GameEngine {
         boolean rock=r>=50||r==0||r==10||r==11||r==12||r==18||r==20||r==22||r==23||r==24||r==30||r==31||r==32||r==38||r>=41&&r<=47;
         return rock&&data.layers[2][i]==0&&objects[i]==0;
     }
+    private void advanceTime(float hours){
+        hour+=hours;
+        while(hour>=24){
+            hour-=24;
+            day++;
+            // Provisional source-site replenishment until original timings are verified.
+            restoreReachableStone(false);
+        }
+    }
     public void stop(){route.clear();walking=false;}
     private int restoreReachableStone(boolean onlyIfNoApproachableStone){
         int startX=(int)x,startY=(int)y;
@@ -87,12 +96,7 @@ public final class GameEngine {
             if(Math.abs(dx)>Math.abs(dy))direction=dx<0?1:2;else direction=dy<0?3:0;
         }
         if(walking)animation+=dt*9;
-        hour+=dt/18f;
-        if(hour>=24){
-            hour-=24;day++;
-            // Provisional daily stone regrowth. Original cadence still under investigation.
-            restoreReachableStone(false);
-        }
+        advanceTime(dt/18f);
         food=Math.max(0,food-dt*.035f);water=Math.max(0,water-dt*.05f);
         energy=Math.max(0,energy-dt*(walking?.025f:.005f));
         if(food<=0||water<=0)health=Math.max(0,health-dt*.05f);
@@ -151,7 +155,7 @@ public final class GameEngine {
         selected=-1;return "+1 "+item.name;
     }
     private String rest(int index){
-        hour+=8;if(hour>=24){hour-=24;day++;}energy=100;
+        advanceTime(8);energy=100;
         food=Math.max(0,food-8);water=Math.max(0,water-12);return "Megpihentél a táborban. Az erőd helyreállt.";
     }
     public boolean contextAvailable(int context){
